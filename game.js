@@ -68,16 +68,30 @@
     }
   }
 
+  // 퀴즈 출제 순서: must:true 문제는 이번 판 퀴즈 봉투 안에 반드시 포함
+  function buildQuizOrder(quizEnvCount) {
+    const all = range(T.quizzes.length);
+    const must = all.filter((i) => T.quizzes[i].must);
+    const others = all.filter((i) => !T.quizzes[i].must);
+    const pool = C.questionsInOrder ? others : shuffle(others);
+    const k = Math.max(0, quizEnvCount - must.length);
+    const picked = must.concat(pool.slice(0, k));
+    return (C.questionsInOrder ? picked.sort((a, b) => a - b) : shuffle(picked)).concat(pool.slice(k));
+  }
+
   function newGame() {
     const qn = T.quizzes.length, mn = T.missions.length;
+    const envs = buildEnvelopes();
+    if (T.quizzes.filter((q) => q.must).length > envs.filter((e) => e.type === "quiz").length)
+      toast("⚠ 꼭 출제할 문제가 퀴즈 봉투 수보다 많아요 (config.js 확인)");
     S = {
       phase: "draw",
       order: null,
       turn: 0,
       scores: range(N).map(() => 0),
       picks: range(N).map(() => 0),
-      envs: buildEnvelopes(),
-      quizOrder: C.questionsInOrder ? range(qn) : shuffle(range(qn)),
+      envs,
+      quizOrder: qn ? buildQuizOrder(envs.filter((e) => e.type === "quiz").length) : [],
       quizPtr: 0,
       missionOrder: C.questionsInOrder ? range(mn) : shuffle(range(mn)),
       missionPtr: 0,

@@ -65,7 +65,7 @@
       const quizzes = T.quizzes.map((q, i) => `
         <div class="card ${q.team ? "team" : ""}" id="q${i + 1}">
           <div class="no">Q${i + 1}</div>
-          <div class="q">${esc(q.q)}<span class="meta kind">${q.team ? "👥 함께" : "⚡ 퀴즈"}</span><span class="meta">${timeOf(q)} · ${q.points ?? C.quiz.points}점</span></div>
+          <div class="q">${esc(q.q)}<span class="meta kind">${q.team ? "👥 함께" : "⚡ 퀴즈"}</span><span class="meta">${timeOf(q)} · ${q.points ?? C.quiz.points}점</span>${q.must ? `<span class="meta" style="background:#ffe1a8;color:#7a4a00">★ 매 판 출제</span>` : ""}</div>
           ${q.hint ? `<div class="hint">${esc(q.hint)}</div>` : "<div></div>"}
           <div class="a">${esc(q.a)}</div>
         </div>`).join("");
