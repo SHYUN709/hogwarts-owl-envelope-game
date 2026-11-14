@@ -40,6 +40,14 @@ window.GAME_CONFIG = {
     cloak:      { name: "투명 망토",       icon: "🧥", count: 1,            desc: "망토 속엔 아무것도 없었다." },                    // 꽝
   },
 
+  // 🎁 아이템 찬스: 아래 아이템은 상식 문제(content.js의 itemQuizzes)를 맞혀야 획득.
+  // 틀리면 스틸 가능, 스틸까지 실패하면 아이템 소멸. 여기 없는 아이템(디멘터·투명 망토)은 즉시 발동.
+  itemQuiz: {
+    items: ["butterbeer", "felix", "curse"],
+    timeLimit: 15,       // 고른 팀 제한시간(초)
+    stealTimeLimit: 10,  // 스틸 팀 제한시간(초)
+  },
+
   // 퀴즈·미션 봉투 개수. (퀴즈 + 미션 + 아이템 합계 = 24 가 되어야 함)
   // 합이 24보다 모자라면 나머지는 퀴즈로 채워집니다.
   envelopeMix: { quiz: 12, mission: 5 },

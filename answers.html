@@ -77,6 +77,14 @@
           <div class="hint">${esc(m.desc)}<br>${esc(m.how || "")}</div>
         </div>`).join("");
 
+      const itemQs = (T.itemQuizzes || []).map((q, i) => `
+        <div class="card" id="i${i + 1}">
+          <div class="no">아이템${i + 1}</div>
+          <div class="q">${esc(q.q)}</div>
+          ${q.hint ? `<div class="hint">${esc(q.hint)}</div>` : "<div></div>"}
+          <div class="a">${esc(q.a)}</div>
+        </div>`).join("");
+
       const ties = T.tiebreakers.map((q, i) => `
         <div class="card" id="t${i + 1}">
           <div class="no">결승${i + 1}</div>
@@ -94,6 +102,9 @@
         <div class="tip">✔ / ✘ 판정은 사회자가 버튼으로! 잘못 눌렀으면 <b>Ctrl+Z</b>. 👥 함께 퀴즈는 정답 대신 <b>성공 기준</b>이 적혀 있어요.
           스틸 팀도 같은 문제(과제)에 도전합니다.</div>
         <h2 id="quiz">📜 퀴즈 (${T.quizzes.length}문제 중 ${C.envelopeMix.quiz}장 무작위 출제)</h2>${quizzes}
+        <h2 id="itemq">🎁 아이템 찬스 문제 (상식)</h2>
+        <div class="tip">게임 화면 왼쪽 위에 <b>아이템 3</b>처럼 번호가 떠요. 맞히면 아이템 공개·획득, 틀리면 스틸 → 스틸도 실패하면 아이템 소멸.
+          디멘터·투명 망토는 문제 없이 즉시 발동.</div><br>${itemQs}
         <h2 id="mission">⚔️ 미션</h2>
         <div class="tip">점수: ${C.mission.rankPoints.map((p, i) => `${i + 1}등 ${p}`).join(" · ")} · 봉투 고른 팀이 1등하면 +${C.mission.pickerWinBonus}</div><br>${missions}
         <h2 id="tie">⚡ 동점 결승 문제</h2>${ties}
@@ -101,7 +112,7 @@
 
       document.getElementById("jump").innerHTML =
         T.quizzes.map((q, i) => `<a href="#q${i + 1}" class="${q.team ? "team" : ""}">Q${i + 1}</a>`).join("") +
-        `<a class="sec" href="#mission">미션</a><a class="sec" href="#tie">결승</a><a class="sec" href="#item">아이템</a>`;
+        `<a class="sec" href="#itemq">아이템 문제</a><a class="sec" href="#mission">미션</a><a class="sec" href="#tie">결승</a><a class="sec" href="#item">아이템</a>`;
     })();
   </script>
 </body>

@@ -94,6 +94,8 @@
       quizOrder: qn ? buildQuizOrder(envs.filter((e) => e.type === "quiz").length) : [],
       quizPtr: 0,
       missionOrder: C.questionsInOrder ? range(mn) : shuffle(range(mn)),
+      itemQuizOrder: shuffle(range((T.itemQuizzes || []).length)),
+      itemQuizPtr: 0,
       missionPtr: 0,
       tbPtr: 0,
       tieWinner: null,
@@ -429,13 +431,17 @@
       h = `${stealing
             ? `<div class="head"><span class="who" style="${tStyle(m.stealTeam)}">${TEAMS[m.stealTeam].crest} ${esc(tName(m.stealTeam))}</span><span>⚡ 스틸 도전!</span></div>`
             : headHTML()}
-        <h2 class="kind">${q.team ? "👥 함께 퀴즈" : "📜 퀴즈"} <span class="tag-en">${q.team ? "TEAM QUIZ" : "QUIZ"} · ${m.points}점</span></h2>
+        ${m.itemQuiz
+          ? `<h2 class="kind">🎁 아이템 찬스 <span class="tag-en">ITEM CHANCE</span></h2>
+             <div class="sub" style="font-weight:800;color:var(--seal)">맞히면 봉투 속 아이템을 얻어요! (무엇인지는 맞힌 뒤 공개)</div>`
+          : `<h2 class="kind">${q.team ? "👥 함께 퀴즈" : "📜 퀴즈"} <span class="tag-en">${q.team ? "TEAM QUIZ" : "QUIZ"} · ${m.points}점</span></h2>`}
         <div class="question">${esc(q.q)}</div>
         ${q.hint ? `<div class="hint">${esc(q.hint)}</div>` : ""}
         ${timerHTML()}
         ${m.timeout ? `<div class="sub" style="color:var(--bad);font-weight:800;font-size:3.4vh">⏰ 시간 종료!</div>` : ""}
         <div class="actions">
           ${m.timer ? `<button class="btn ink" data-act="timer">${m.timer.running ? "⏸ 일시정지" : m.timer.left < m.timer.total ? "▶ 계속" : "⏱ 타이머 시작"} <kbd>Space</kbd></button>` : ""}
+          ${stealing ? `<button class="btn ink" data-act="stealChange">↺ 스틸 팀 다시 고르기</button>` : ""}
           <button class="btn big bad" data-act="${stealing ? "stealWrong" : "wrong"}">✘ ${stealing ? "오답" : "오답 / 시간 초과"}</button>
           <button class="btn big ok" data-act="${stealing ? "stealRight" : "right"}">✔ 정답!</button>
         </div>`;
@@ -445,7 +451,7 @@
       h = `${headHTML()}
         <div class="steal-banner">⚡ 스틸 찬스!</div>
         <div class="question" style="font-size:4.2vh">${esc(m.quiz.q)}</div>
-        <div class="rank-prompt" style="color:var(--steal)">가장 먼저 손 든 팀은?${m.quiz.team ? " <span style=\"font-size:.75em\">(같은 과제에 도전!)</span>" : ""}</div>
+        <div class="rank-prompt" style="color:var(--steal)">👇 스틸할 팀을 누르세요 <span style="font-size:.75em">(가장 먼저 손 든 팀${m.quiz.team ? " · 같은 과제에 도전!" : ""}${m.itemQuiz ? " · 맞히면 아이템을 가져가요!" : ""})</span></div>
         ${teamButtons(others, "stealTeam")}
         <div class="actions">
           <button class="btn ink" data-act="noSteal">🙅 아무도 안 듦 → 정답 공개</button>
@@ -493,13 +499,14 @@
     /* ---------- 아이템 ---------- */
     else if (m.stage === "item") {
       const k = e.item, it = C.items[k];
+      const owner = m.itemTeam ?? m.team;
       const needTarget = k === "curse" && m.target == null;
-      const others = range(N).filter((i) => i !== m.team);
+      const others = range(N).filter((i) => i !== owner);
       let body = "";
       if (needTarget) {
-        body = `<div class="rank-prompt">⚡ 저주를 걸 팀을 고르세요!</div>${teamButtons(others, "curseTarget")}`;
+        body = `<div class="rank-prompt">⚡ ${esc(tName(owner))}, 저주를 걸 팀을 고르세요!</div>${teamButtons(others, "curseTarget")}`;
       } else {
-        const tgt = k === "curse" ? m.target : m.team;
+        const tgt = k === "curse" ? m.target : owner;
         const before = S.scores[tgt], after = itemResult(k, before);
         body = k === "cloak"
           ? `<div class="result-line none">아무 일도 일어나지 않았습니다… 🌫️</div>`
@@ -511,9 +518,21 @@
         <div class="item-icon">${it.icon}</div>
         <h3 class="item-name">${esc(it.name)}</h3>
         <div class="item-effect">${esc(itemShort(k))}</div>
-        ${needTarget ? "" : `<div class="sub">${esc(it.desc)}</div>`}
+        ${m.itemQuiz
+          ? `<div class="sub">정답 <b>${esc(m.quiz.a)}</b> · ${m.stolen ? "⚡ 스틸 성공! " : "🎉 "}<b>${TEAMS[owner].crest} ${esc(tName(owner))}</b> 아이템 획득!</div>`
+          : needTarget ? "" : `<div class="sub">${esc(it.desc)}</div>`}
         ${body}
         <div class="actions">${needTarget ? "" : `<button class="btn big gold" data-act="finish" data-primary>확인 ▶ <kbd>Enter</kbd></button>`}</div>`;
+    }
+    else if (m.stage === "itemLost") {
+      const it = C.items[e.item];
+      h = `${headHTML()}
+        <h2 class="kind">🎁 아이템 찬스 · 정답 공개</h2>
+        <div class="question" style="font-size:4vh;opacity:.75">${esc(m.quiz.q)}</div>
+        <div class="answer ${String(m.quiz.a).length > 40 ? "long" : ""}">${esc(m.quiz.a)}</div>
+        <div class="result-line none">💨 아무도 맞히지 못해 아이템이 사라졌어요</div>
+        <div class="sub">봉투 속 아이템은… ${it.icon} <b>${esc(it.name)}</b> (${esc(itemShort(e.item))})</div>
+        <div class="actions"><button class="btn big gold" data-act="finish" data-primary>다음 차례 ▶ <kbd>Enter</kbd></button></div>`;
     }
 
     /* ---------- 동점 결승 ---------- */
@@ -533,8 +552,19 @@
     }
 
     if (m.quizNo && m.stage !== "confirm") h = `<div class="qno" title="사회자 답안지 번호">Q${m.quizNo}</div>` + h;
+    if (m.itemNo && m.stage !== "confirm") h = `<div class="qno" title="사회자 답안지 번호">아이템 ${m.itemNo}</div>` + h;
     if (m.stage === "tie" && T.tiebreakers.length) h = `<div class="qno">결승 ${(S.tbPtr % T.tiebreakers.length) + 1}</div>` + h;
     P.innerHTML = h;
+  }
+
+  function itemQuizCfg() { return Object.assign({ items: ["butterbeer", "felix", "curse"], timeLimit: C.quiz.timeLimit, stealTimeLimit: C.quiz.stealTimeLimit }, C.itemQuiz || {}); }
+  function itemNeedsQuiz(k) { return itemQuizCfg().items.includes(k); }
+  function goItem(m) {
+    m.stage = "item";
+    const k = S.envs[m.env].item;
+    if (k === "dementor" || k === "curse") { sfx.dark(); flash("#1a2a4a"); }
+    else if (k === "cloak") sfx.wrong();
+    else { sfx.sparkle(); sfx.correct(); flash("#fff3c4"); }
   }
 
   function itemResult(k, v) {
@@ -641,12 +671,19 @@
             m.mission = mn ? T.missions[S.missionOrder[S.missionPtr % mn]] : { title: "미션", desc: "(content.js에 미션을 넣어 주세요)" };
             m.timer = makeTimer(m.mission.time ?? C.mission.timeLimit);
             m.stage = "mission";
+          } else if (itemNeedsQuiz(env.item)) {
+            // 🎁 아이템 찬스: 상식 문제를 맞혀야 아이템 공개·획득
+            const iq = T.itemQuizzes || [], n = iq.length;
+            m.itemQuiz = true;
+            m.quiz = n ? iq[S.itemQuizOrder[S.itemQuizPtr % n]] : { q: "(content.js의 itemQuizzes에 문제를 넣어 주세요)", a: "" };
+            m.itemNo = n ? S.itemQuizOrder[S.itemQuizPtr % n] + 1 : 0;
+            m.points = 0;
+            m.timer = makeTimer(m.quiz.time ?? itemQuizCfg().timeLimit);
+            m.stage = "quiz";
+            sfx.sparkle();
           } else {
-            m.stage = "item";
-            const k = env.item;
-            if (k === "dementor" || k === "curse") { sfx.dark(); flash("#1a2a4a"); }
-            else if (k === "cloak") sfx.wrong();
-            else { sfx.sparkle(); sfx.correct(); flash("#fff3c4"); }
+            m.itemTeam = m.team;
+            goItem(m);
           }
           renderModal();
         }, 1300);
@@ -656,7 +693,9 @@
       /* 퀴즈 */
       case "timer": toggleTimer(); break;
       case "right":
-        stopTimer(); sfx.correct(); flash("#bff5cf");
+        stopTimer();
+        if (m.itemQuiz) { m.itemTeam = m.team; goItem(m); renderModal(); burstOn($("#modal-panel"), TEAMS[m.team].accent, 50); break; }
+        sfx.correct(); flash("#bff5cf");
         m.result = { team: m.team, steal: false }; m.stage = "quizResult"; renderModal();
         burstOn($("#modal-panel"), TEAMS[m.team].accent, 50); break;
       case "wrong":
@@ -665,17 +704,22 @@
         m.timer = null; m.timeout = false; m.stage = "steal"; renderModal(); break;
       case "stealTeam":
         m.stealTeam = +arg; m.timeout = false;
-        m.timer = makeTimer(C.quiz.stealTimeLimit);
+        m.timer = makeTimer(m.itemQuiz ? itemQuizCfg().stealTimeLimit : C.quiz.stealTimeLimit);
         m.stage = "stealAns"; sfx.pick(); renderModal();
         if (m.timer) toggleTimer();
         break;
+      case "stealChange":
+        stopTimer(); m.timer = null; m.timeout = false; m.stealTeam = null; m.stage = "steal"; renderModal(); break;
       case "stealRight":
-        stopTimer(); sfx.correct(); flash("#e3d4ff");
+        stopTimer();
+        if (m.itemQuiz) { m.itemTeam = m.stealTeam; m.stolen = true; goItem(m); renderModal(); burstOn($("#modal-panel"), "#b48cff", 50); break; }
+        sfx.correct(); flash("#e3d4ff");
         m.result = { team: m.stealTeam, steal: true }; m.stage = "quizResult"; renderModal();
         burstOn($("#modal-panel"), "#b48cff", 50); break;
       case "stealWrong":
       case "noSteal":
         stopTimer(); if (a === "stealWrong") sfx.wrong();
+        if (m.itemQuiz) { m.stage = "itemLost"; renderModal(); break; }
         m.result = { team: null, steal: a === "stealWrong" }; m.stage = "quizResult"; renderModal(); break;
 
       /* 미션 */
@@ -723,9 +767,16 @@
         env.summary = `미션 1등 ${tName(m.ranks[0])}`;
       } else {
         const k = env.item;
-        const tgt = k === "curse" ? m.target : m.team;
-        S.scores[tgt] = itemResult(k, S.scores[tgt]);
-        env.summary = k === "curse" ? `${C.items[k].name} → ${tName(tgt)}` : `${C.items[k].name}`;
+        if (m.itemQuiz) S.itemQuizPtr = (S.itemQuizPtr || 0) + 1;
+        if (m.stage === "itemLost") {
+          env.summary = `${C.items[k].name} 놓침`;
+        } else {
+          const owner = m.itemTeam ?? m.team;
+          const tgt = k === "curse" ? m.target : owner;
+          S.scores[tgt] = itemResult(k, S.scores[tgt]);
+          const by = owner !== m.team ? `⚡${tName(owner)} ` : "";
+          env.summary = k === "curse" ? `${by}${C.items[k].name} → ${tName(tgt)}` : `${by}${C.items[k].name}`;
+        }
       }
       S.picks[m.team]++;
       S.turn++;
@@ -836,7 +887,10 @@
       `<div class="slide parchment">
         <h2>🎁 아이템 효과표 <small>MAGIC ITEMS</small></h2>
         <table class="items">${ITEM_KEYS.map((k) => `<tr><td>${C.items[k].icon}</td><td>${esc(C.items[k].name)}</td><td>${esc(itemShort(k))}</td></tr>`).join("")}</table>
-        <div class="foot"><span>✨ 고른 팀에게 <b>즉시 발동</b></span><span>🛡️ 점수는 <b>0점 아래로</b> 내려가지 않아요</span></div>
+        <div class="foot">
+          <span>🎯 ${ITEM_KEYS.filter(itemNeedsQuiz).map((k) => C.items[k].icon).join("")} <b>상식 문제를 맞혀야</b> 획득 (틀리면 스틸!)</span>
+          <span>💥 ${ITEM_KEYS.filter((k) => !itemNeedsQuiz(k)).map((k) => C.items[k].icon).join("")} <b>즉시 발동</b></span>
+          <span>🛡️ <b>0점 아래로</b> 안 내려가요</span></div>
       </div>`,
     ];
   }
@@ -912,6 +966,7 @@
   /* ====================== 시작 ====================== */
   checkMix();
   load();
+  if (S && (!S.itemQuizOrder || S.itemQuizOrder.length !== (T.itemQuizzes || []).length)) { S.itemQuizOrder = shuffle(range((T.itemQuizzes || []).length)); S.itemQuizPtr = S.itemQuizPtr || 0; }
   if (S) shown = S.scores.slice();
   render();
 })();
