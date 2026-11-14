@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>호그와트 부엉이 편지</title>
+  <!-- 인터넷이 없어도 동작합니다 (글꼴만 기본 글꼴로 바뀜) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;800&family=EB+Garamond:wght@600;700;800&family=Nanum+Myeongjo:wght@700;800&family=Gowun+Batang:wght@700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="stars" aria-hidden="true"></div>
+
+  <section id="screen-title" class="screen"></section>
+  <section id="screen-draw" class="screen"></section>
+  <section id="screen-board" class="screen">
+    <header id="scoreboard"></header>
+    <main id="grid"></main>
+    <footer id="statusbar"></footer>
+  </section>
+  <section id="screen-end" class="screen"></section>
+
+  <div id="modal" class="overlay" hidden><div class="panel parchment" id="modal-panel"></div></div>
+  <div id="rules" class="overlay" hidden><div class="rules-wrap" id="rules-panel"></div></div>
+  <div id="toast" aria-live="polite"></div>
+  <div id="fx" aria-hidden="true"></div>
+
+  <script src="config.js"></script>
+  <script src="content.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
