@@ -431,3 +431,11 @@ kbd {
 }
 .flash { position: fixed; inset: 0; z-index: 85; pointer-events: none; animation: flash .7s ease-out forwards; }
 @keyframes flash { from { opacity: .7; } to { opacity: 0; } }
+
+/* 사회자 답안지 번호 */
+.panel .qno {
+  position: absolute; top: 1.6vh; left: 1.6vw; font-family: var(--font-ui); font-weight: 800;
+  font-size: 2.4vh; color: var(--ink-soft); background: #ffffff80; border: 1px solid #5b442655;
+  border-radius: 8px; padding: .1em .6em;
+}
+.panel .answer.long { font-family: var(--font-ko); font-size: 3vh; line-height: 1.5; max-width: 92%; font-weight: 700; }

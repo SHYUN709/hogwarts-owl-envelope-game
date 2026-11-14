@@ -209,6 +209,7 @@
       ${mixWarning ? `<div class="warn">${esc(mixWarning)}</div>` : ""}
       <div class="title-actions">
         <button class="btn big ghost" data-act="rules">📖 게임 규칙 안내</button>
+        <a class="btn big ghost" href="answers.html" target="_blank" rel="noopener" style="text-decoration:none">📋 사회자 답안지</a>
         <button class="btn big gold" data-act="new">✨ 새 게임 시작</button>
         ${inProgress ? `<button class="btn big" data-act="resume">↪ 이어하기 (${openedCount}/${TOTAL})</button>` : ""}
       </div>
@@ -338,7 +339,7 @@
       <div class="order">${S.order.map((ti, k) => `${k ? "<span>›</span>" : ""}<span class="chip ${ti === cur ? "now" : ""}" style="${tStyle(ti)}">${TEAMS[ti].crest} ${esc(TEAMS[ti].name)}</span>`).join("")}</div>
       <div class="keys">
         ${over ? `<button data-act="toEnd" style="border-color:var(--gold);color:var(--gold);font-size:2.2vh">🏆 결과 보기</button> ` : "봉투 글자키로 선택 · "}
-        <button data-act="rules">1 규칙</button> <button data-act="items">2 아이템</button>
+        <a href="answers.html" target="_blank" rel="noopener" style="color:inherit;border:1px solid #fff5;border-radius:6px;padding:.1em .5em;text-decoration:none">📋 답안지</a> <button data-act="rules">1 규칙</button> <button data-act="items">2 아이템</button>
         <button data-act="undo">Ctrl+Z 되돌리기</button> <button data-act="sound">${soundOn ? "🔊" : "🔇"}</button>
         <button data-act="home">⌂</button>
       </div>`;
@@ -441,7 +442,7 @@
       h = `${headHTML()}
         <h2 class="kind">📜 정답 공개</h2>
         <div class="question" style="font-size:4vh;opacity:.75">${esc(m.quiz.q)}</div>
-        <div class="answer">${esc(m.quiz.a)}</div>
+        <div class="answer ${String(m.quiz.a).length > 40 ? "long" : ""}">${esc(m.quiz.a)}</div>
         ${r.team !== null
           ? `<div class="result-line good">${r.steal ? "⚡ 스틸 성공! " : "🎉 "}${TEAMS[r.team].crest} ${esc(tName(r.team))} +${m.points}점</div>`
           : `<div class="result-line none">아쉽게도 이번 문제는 득점 없음</div>`}
@@ -517,6 +518,8 @@
         </div>`;
     }
 
+    if (m.quizNo && m.stage !== "confirm") h = `<div class="qno" title="사회자 답안지 번호">Q${m.quizNo}</div>` + h;
+    if (m.stage === "tie" && T.tiebreakers.length) h = `<div class="qno">결승 ${(S.tbPtr % T.tiebreakers.length) + 1}</div>` + h;
     P.innerHTML = h;
   }
 
@@ -615,6 +618,7 @@
           if (env.type === "quiz") {
             const qn = T.quizzes.length;
             m.quiz = qn ? T.quizzes[S.quizOrder[S.quizPtr % qn]] : { q: "(content.js에 퀴즈를 넣어 주세요)", a: "" };
+            m.quizNo = qn ? S.quizOrder[S.quizPtr % qn] + 1 : 0;
             m.points = m.quiz.points ?? C.quiz.points;
             m.timer = makeTimer(m.quiz.time ?? C.quiz.timeLimit);
             m.stage = "quiz";
