@@ -33,24 +33,25 @@ window.GAME_CONFIG = {
 
   // 아이템 봉투  (count = 24장 중 몇 장 넣을지, value = 효과 숫자)
   items: {
-    butterbeer: { name: "버터맥주",        icon: "🍺", count: 2, value: 10, desc: "따끈한 버터맥주 한 잔! 점수를 얻는다." },        // +value점
-    felix:      { name: "펠릭스 펠리시스", icon: "🧪", count: 1, value: 2,  desc: "행운의 물약! 지금 점수가 두 배가 된다." },      // 현재 점수 × value
-    curse:      { name: "저주 주문",       icon: "⚡", count: 2, value: 10, desc: "공격할 팀을 직접 골라 점수를 깎는다." },        // 고른 팀 -value점
-    dementor:   { name: "디멘터",          icon: "👻", count: 1,            desc: "디멘터가 행복을 빨아들였다… 점수가 0점이 된다." }, // 우리 팀 0점
+    butterbeer: { name: "버터맥주",        icon: "🍺", count: 4, value: 10, desc: "따끈한 버터맥주 한 잔! 점수를 얻는다." },        // +value점
+    felix:      { name: "펠릭스 펠리시스", icon: "🧪", count: 2, value: 2,  desc: "행운의 물약! 지금 점수가 두 배가 된다." },      // 현재 점수 × value
+    curse:      { name: "저주 주문",       icon: "⚡", count: 3, value: 10, desc: "공격할 팀을 직접 골라 점수를 깎는다." },        // 고른 팀 -value점
+    dementor:   { name: "디멘터",          icon: "👻", count: 2,            desc: "디멘터가 행복을 빨아들였다… 점수가 0점이 된다." }, // 우리 팀 0점
     cloak:      { name: "투명 망토",       icon: "🧥", count: 1,            desc: "망토 속엔 아무것도 없었다." },                    // 꽝
   },
 
-  // 🎁 아이템 찬스: 아래 아이템은 상식 문제(content.js의 itemQuizzes)를 맞혀야 획득.
-  // 틀리면 스틸 가능, 스틸까지 실패하면 아이템 소멸. 여기 없는 아이템(디멘터·투명 망토)은 즉시 발동.
+  // 🎁 아이템 찬스: 아래 아이템은 상식 문제(content.js의 itemQuizzes)를 먼저 풀어야 함.
+  // 맞힌 팀이 봉투 속 아이템을 그대로 받음 (좋은 것이든 디멘터·꽝이든 복불복!)
+  // 틀리면 스틸 가능, 스틸까지 실패하면 아이템 소멸. 목록에서 빼면 그 아이템은 문제 없이 즉시 발동.
   itemQuiz: {
-    items: ["butterbeer", "felix", "curse"],
+    items: ["butterbeer", "felix", "curse", "dementor", "cloak"],
     timeLimit: 15,       // 고른 팀 제한시간(초)
     stealTimeLimit: 10,  // 스틸 팀 제한시간(초)
   },
 
   // 퀴즈·미션 봉투 개수. (퀴즈 + 미션 + 아이템 합계 = 24 가 되어야 함)
   // 합이 24보다 모자라면 나머지는 퀴즈로 채워집니다.
-  envelopeMix: { quiz: 12, mission: 5 },
+  envelopeMix: { quiz: 8, mission: 4 },   // + 아이템 12장 = 24
 
   // true: 게임 시작마다 봉투 내용을 무작위로 섞음
   // false: 아래 fixedLayout대로 고정 (예: A: "quiz", B: "mission", C: "item:curse")

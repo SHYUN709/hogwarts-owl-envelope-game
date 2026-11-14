@@ -433,7 +433,7 @@
             : headHTML()}
         ${m.itemQuiz
           ? `<h2 class="kind">🎁 아이템 찬스 <span class="tag-en">ITEM CHANCE</span></h2>
-             <div class="sub" style="font-weight:800;color:var(--seal)">맞히면 봉투 속 아이템을 얻어요! (무엇인지는 맞힌 뒤 공개)</div>`
+             <div class="sub" style="font-weight:800;color:var(--seal)">맞히면 봉투 속 아이템을 받아요! 좋은 것일까, 나쁜 것일까… 🎲</div>`
           : `<h2 class="kind">${q.team ? "👥 함께 퀴즈" : "📜 퀴즈"} <span class="tag-en">${q.team ? "TEAM QUIZ" : "QUIZ"} · ${m.points}점</span></h2>`}
         <div class="question">${esc(q.q)}</div>
         ${q.hint ? `<div class="hint">${esc(q.hint)}</div>` : ""}
@@ -519,7 +519,7 @@
         <h3 class="item-name">${esc(it.name)}</h3>
         <div class="item-effect">${esc(itemShort(k))}</div>
         ${m.itemQuiz
-          ? `<div class="sub">정답 <b>${esc(m.quiz.a)}</b> · ${m.stolen ? "⚡ 스틸 성공! " : "🎉 "}<b>${TEAMS[owner].crest} ${esc(tName(owner))}</b> 아이템 획득!</div>`
+          ? `<div class="sub">정답 <b>${esc(m.quiz.a)}</b> · ${m.stolen ? "⚡ 스틸 성공! " : ""}<b>${TEAMS[owner].crest} ${esc(tName(owner))}</b> ${k === "dementor" ? "😱 앗, 디멘터를 받았다…" : k === "cloak" ? "🌫️ 받았지만 꽝!" : "🎉 아이템 획득!"}</div>`
           : needTarget ? "" : `<div class="sub">${esc(it.desc)}</div>`}
         ${body}
         <div class="actions">${needTarget ? "" : `<button class="btn big gold" data-act="finish" data-primary>확인 ▶ <kbd>Enter</kbd></button>`}</div>`;
@@ -557,7 +557,7 @@
     P.innerHTML = h;
   }
 
-  function itemQuizCfg() { return Object.assign({ items: ["butterbeer", "felix", "curse"], timeLimit: C.quiz.timeLimit, stealTimeLimit: C.quiz.stealTimeLimit }, C.itemQuiz || {}); }
+  function itemQuizCfg() { return Object.assign({ items: ["butterbeer", "felix", "curse", "dementor", "cloak"], timeLimit: C.quiz.timeLimit, stealTimeLimit: C.quiz.stealTimeLimit }, C.itemQuiz || {}); }
   function itemNeedsQuiz(k) { return itemQuizCfg().items.includes(k); }
   function goItem(m) {
     m.stage = "item";
@@ -888,8 +888,10 @@
         <h2>🎁 아이템 효과표 <small>MAGIC ITEMS</small></h2>
         <table class="items">${ITEM_KEYS.map((k) => `<tr><td>${C.items[k].icon}</td><td>${esc(C.items[k].name)}</td><td>${esc(itemShort(k))}</td></tr>`).join("")}</table>
         <div class="foot">
-          <span>🎯 ${ITEM_KEYS.filter(itemNeedsQuiz).map((k) => C.items[k].icon).join("")} <b>상식 문제를 맞혀야</b> 획득 (틀리면 스틸!)</span>
-          <span>💥 ${ITEM_KEYS.filter((k) => !itemNeedsQuiz(k)).map((k) => C.items[k].icon).join("")} <b>즉시 발동</b></span>
+          ${ITEM_KEYS.every(itemNeedsQuiz)
+            ? `<span>🎯 <b>상식 문제를 맞힌 팀</b>이 봉투 속 아이템을 받아요 — 좋은 건지 나쁜 건지는 복불복! 🎲 (틀리면 스틸)</span>`
+            : `<span>🎯 ${ITEM_KEYS.filter(itemNeedsQuiz).map((k) => C.items[k].icon).join("")} <b>상식 문제를 맞혀야</b> 받음 (틀리면 스틸!)</span>
+               <span>💥 ${ITEM_KEYS.filter((k) => !itemNeedsQuiz(k)).map((k) => C.items[k].icon).join("")} <b>즉시 발동</b></span>`}
           <span>🛡️ <b>0점 아래로</b> 안 내려가요</span></div>
       </div>`,
     ];
