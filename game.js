@@ -18,6 +18,8 @@
   const range = (n) => Array.from({ length: n }, (_, i) => i);
   const tStyle = (i) => `--color:${TEAMS[i].color};--accent:${TEAMS[i].accent}`;
   const tName = (i) => TEAMS[i].name;
+  // 받침 있으면 a(이/은), 없으면 b(가/는)
+  const josa = (w, a, b) => { const c = String(w).charCodeAt(String(w).length - 1); return c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 ? a : b; };
 
   let S = null;            // 저장되는 게임 상태
   let history = [];        // 되돌리기용 스냅샷
@@ -400,7 +402,7 @@
 
   function teamButtons(list, act, extra = () => "") {
     return `<div class="team-pick">${list.map((i) => `
-      <button class="team-btn ${extra(i).includes("picked") ? "picked" : ""}" style="${tStyle(i)}" data-act="${act}" data-arg="${i}">
+      <button class="team-btn ${extra(i).includes("picked") ? "picked" : ""}" style="${tStyle(i)}" data-act="${act}" data-arg="${i}" aria-label="${esc(tName(i))} ${S.scores[i]}점">
         <span class="crest">${TEAMS[i].crest}</span><span>${esc(tName(i))}</span>
         <span class="s">${S.scores[i]}점</span>${extra(i).replace("picked", "")}
       </button>`).join("")}</div>`;
@@ -519,10 +521,24 @@
         <h3 class="item-name">${esc(it.name)}</h3>
         <div class="item-effect">${esc(itemShort(k))}</div>
         ${m.itemQuiz
-          ? `<div class="sub">정답 <b>${esc(m.quiz.a)}</b> · ${m.stolen ? "⚡ 스틸 성공! " : ""}<b>${TEAMS[owner].crest} ${esc(tName(owner))}</b> ${k === "dementor" ? "😱 앗, 디멘터를 받았다…" : k === "cloak" ? "🌫️ 받았지만 꽝!" : "🎉 아이템 획득!"}</div>`
+          ? `<div class="sub">정답 <b>${esc(m.quiz.a)}</b> · ${m.passedFrom != null ? `🔄 ${esc(tName(m.passedFrom))}${josa(tName(m.passedFrom), "이", "가")} 넘긴 아이템 →` : m.stolen ? "⚡ 스틸 성공! " : ""}<b>${TEAMS[owner].crest} ${esc(tName(owner))}</b> ${k === "dementor" ? "😱 앗, 디멘터를 받았다…" : k === "cloak" ? "🌫️ 받았지만 꽝!" : "🎉 아이템 획득!"}</div>`
           : needTarget ? "" : `<div class="sub">${esc(it.desc)}</div>`}
         ${body}
         <div class="actions">${needTarget ? "" : `<button class="btn big gold" data-act="finish" data-primary>확인 ▶ <kbd>Enter</kbd></button>`}</div>`;
+    }
+    else if (m.stage === "itemChoice") {
+      const w = m.winner;
+      h = `${headHTML()}
+        <h2 class="kind">🎁 아이템 획득 찬스!</h2>
+        <div class="sub">정답 <b>${esc(m.quiz.a)}</b> · ${m.stolen ? "⚡ 스틸 성공! " : "🎉 "}<b>${TEAMS[w].crest} ${esc(tName(w))}</b> 정답!</div>
+        <div class="item-icon" style="font-size:8vh">🎁</div>
+        <div class="rank-prompt">${esc(tName(w))}, 이 아이템… 직접 열까요? 다른 팀에게 넘길까요?</div>
+        <div class="sub">좋은 것일까, 디멘터일까… 열기 전엔 아무도 몰라요! 🎲</div>
+        <div class="actions" style="margin-top:0">
+          <button class="btn big gold" data-act="keepItem" data-primary>🎁 우리가 연다! <kbd>Enter</kbd></button>
+        </div>
+        <div class="sub" style="margin-top:.5vh">또는 👇 넘길 팀 선택</div>
+        ${teamButtons(range(N).filter((i) => i !== w), "passItem")}`;
     }
     else if (m.stage === "itemLost") {
       const it = C.items[e.item];
@@ -559,6 +575,11 @@
 
   function itemQuizCfg() { return Object.assign({ items: ["butterbeer", "felix", "curse", "dementor", "cloak"], timeLimit: C.quiz.timeLimit, stealTimeLimit: C.quiz.stealTimeLimit }, C.itemQuiz || {}); }
   function itemNeedsQuiz(k) { return itemQuizCfg().items.includes(k); }
+  // 아이템 찬스 정답 → 양도 선택(설정 시) → 아이템 공개
+  function afterItemWin(m) {
+    if (itemQuizCfg().allowPass === false) { m.itemTeam = m.winner; goItem(m); return; }
+    m.stage = "itemChoice"; sfx.correct();
+  }
   function goItem(m) {
     m.stage = "item";
     const k = S.envs[m.env].item;
@@ -694,7 +715,7 @@
       case "timer": toggleTimer(); break;
       case "right":
         stopTimer();
-        if (m.itemQuiz) { m.itemTeam = m.team; goItem(m); renderModal(); burstOn($("#modal-panel"), TEAMS[m.team].accent, 50); break; }
+        if (m.itemQuiz) { m.winner = m.team; afterItemWin(m); renderModal(); burstOn($("#modal-panel"), TEAMS[m.team].accent, 50); break; }
         sfx.correct(); flash("#bff5cf");
         m.result = { team: m.team, steal: false }; m.stage = "quizResult"; renderModal();
         burstOn($("#modal-panel"), TEAMS[m.team].accent, 50); break;
@@ -712,7 +733,7 @@
         stopTimer(); m.timer = null; m.timeout = false; m.stealTeam = null; m.stage = "steal"; renderModal(); break;
       case "stealRight":
         stopTimer();
-        if (m.itemQuiz) { m.itemTeam = m.stealTeam; m.stolen = true; goItem(m); renderModal(); burstOn($("#modal-panel"), "#b48cff", 50); break; }
+        if (m.itemQuiz) { m.winner = m.stealTeam; m.stolen = true; afterItemWin(m); renderModal(); burstOn($("#modal-panel"), "#b48cff", 50); break; }
         sfx.correct(); flash("#e3d4ff");
         m.result = { team: m.stealTeam, steal: true }; m.stage = "quizResult"; renderModal();
         burstOn($("#modal-panel"), "#b48cff", 50); break;
@@ -733,6 +754,11 @@
       case "rankReset": m.ranks = []; renderModal(); break;
 
       /* 아이템 */
+      case "keepItem": m.itemTeam = m.winner; goItem(m); renderModal(); break;
+      case "passItem":
+        m.itemTeam = +arg; m.passedFrom = m.winner; sfx.steal();
+        toast(`🔄 ${tName(m.winner)} → ${tName(+arg)} 아이템 양도!`);
+        goItem(m); renderModal(); break;
       case "curseTarget": m.target = +arg; sfx.zap(); flash("#b8322a"); renderModal(); break;
 
       case "finish": finishTurn(); break;
@@ -774,7 +800,7 @@
           const owner = m.itemTeam ?? m.team;
           const tgt = k === "curse" ? m.target : owner;
           S.scores[tgt] = itemResult(k, S.scores[tgt]);
-          const by = owner !== m.team ? `⚡${tName(owner)} ` : "";
+          const by = m.passedFrom != null ? `🔄${tName(m.passedFrom)}→${tName(owner)} ` : owner !== m.team ? `⚡${tName(owner)} ` : "";
           env.summary = k === "curse" ? `${by}${C.items[k].name} → ${tName(tgt)}` : `${by}${C.items[k].name}`;
         }
       }
@@ -889,7 +915,8 @@
         <table class="items">${ITEM_KEYS.map((k) => `<tr><td>${C.items[k].icon}</td><td>${esc(C.items[k].name)}</td><td>${esc(itemShort(k))}</td></tr>`).join("")}</table>
         <div class="foot">
           ${ITEM_KEYS.every(itemNeedsQuiz)
-            ? `<span>🎯 <b>상식 문제를 맞힌 팀</b>이 봉투 속 아이템을 받아요 — 좋은 건지 나쁜 건지는 복불복! 🎲 (틀리면 스틸)</span>`
+            ? `<span>🎯 <b>상식 문제를 맞힌 팀</b>이 봉투 속 아이템을 받아요 — 복불복! 🎲 (틀리면 스틸)</span>
+               ${itemQuizCfg().allowPass !== false ? `<span>🔄 열기 전에 <b>다른 팀에게 넘길 수도</b> 있어요!</span>` : ""}`
             : `<span>🎯 ${ITEM_KEYS.filter(itemNeedsQuiz).map((k) => C.items[k].icon).join("")} <b>상식 문제를 맞혀야</b> 받음 (틀리면 스틸!)</span>
                <span>💥 ${ITEM_KEYS.filter((k) => !itemNeedsQuiz(k)).map((k) => C.items[k].icon).join("")} <b>즉시 발동</b></span>`}
           <span>🛡️ <b>0점 아래로</b> 안 내려가요</span></div>

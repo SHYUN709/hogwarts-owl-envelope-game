@@ -47,6 +47,7 @@ window.GAME_CONFIG = {
     items: ["butterbeer", "felix", "curse", "dementor", "cloak"],
     timeLimit: 15,       // 고른 팀 제한시간(초)
     stealTimeLimit: 10,  // 스틸 팀 제한시간(초)
+    allowPass: true,     // 맞힌 팀이 열어보기 전에 다른 팀에게 넘길 수 있음 (뭔지 모르는 채로!)
   },
 
   // 퀴즈·미션 봉투 개수. (퀴즈 + 미션 + 아이템 합계 = 24 가 되어야 함)
