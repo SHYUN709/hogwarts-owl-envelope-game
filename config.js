@@ -33,9 +33,9 @@ window.GAME_CONFIG = {
 
   // 아이템 봉투  (count = 24장 중 몇 장 넣을지, value = 효과 숫자)
   items: {
-    butterbeer: { name: "버터맥주",        icon: "🍺", count: 4, value: 10, desc: "따끈한 버터맥주 한 잔! 점수를 얻는다." },        // +value점
+    butterbeer: { name: "버터맥주",        icon: "🍺", count: 4, value: 20, desc: "따끈한 버터맥주 한 잔! 점수를 얻는다." },        // +value점
     felix:      { name: "펠릭스 펠리시스", icon: "🧪", count: 2, value: 2,  desc: "행운의 물약! 지금 점수가 두 배가 된다." },      // 현재 점수 × value
-    curse:      { name: "저주 주문",       icon: "⚡", count: 3, value: 10, desc: "공격할 팀을 직접 골라 점수를 깎는다." },        // 고른 팀 -value점
+    curse:      { name: "저주 주문",       icon: "⚡", count: 3, value: 20, desc: "공격할 팀을 직접 골라 점수를 깎는다." },        // 고른 팀 -value점
     dementor:   { name: "디멘터",          icon: "👻", count: 2,            desc: "디멘터가 행복을 빨아들였다… 점수가 0점이 된다." }, // 우리 팀 0점
     cloak:      { name: "투명 망토",       icon: "🧥", count: 1,            desc: "망토 속엔 아무것도 없었다." },                    // 꽝
   },
@@ -47,6 +47,7 @@ window.GAME_CONFIG = {
     items: ["butterbeer", "felix", "curse", "dementor", "cloak"],
     timeLimit: 15,       // 고른 팀 제한시간(초)
     stealTimeLimit: 10,  // 스틸 팀 제한시간(초)
+    points: 10,          // 아이템 문제를 맞힌 팀이 받는 점수 (아이템 효과보다 먼저 적용, 넘겨도 맞힌 팀이 받음)
     allowPass: true,     // 맞힌 팀이 열어보기 전에 다른 팀에게 넘길 수 있음 (뭔지 모르는 채로!)
   },
 

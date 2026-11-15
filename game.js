@@ -435,7 +435,7 @@
             : headHTML()}
         ${m.itemQuiz
           ? `<h2 class="kind">🎁 아이템 찬스 <span class="tag-en">ITEM CHANCE</span></h2>
-             <div class="sub" style="font-weight:800;color:var(--seal)">맞히면 봉투 속 아이템을 받아요! 좋은 것일까, 나쁜 것일까… 🎲</div>`
+             <div class="sub" style="font-weight:800;color:var(--seal)">맞히면 <b>+${itemQuizCfg().points ?? C.quiz.points}점</b> + 봉투 속 아이템! 좋은 것일까, 나쁜 것일까… 🎲</div>`
           : `<h2 class="kind">${q.team ? "👥 함께 퀴즈" : "📜 퀴즈"} <span class="tag-en">${q.team ? "TEAM QUIZ" : "QUIZ"} · ${m.points}점</span></h2>`}
         <div class="question">${esc(q.q)}</div>
         ${q.hint ? `<div class="hint">${esc(q.hint)}</div>` : ""}
@@ -504,14 +504,17 @@
       const owner = m.itemTeam ?? m.team;
       const needTarget = k === "curse" && m.target == null;
       const others = range(N).filter((i) => i !== owner);
+      const pts = itemWinPoints(m);
+      const base = S.scores.slice(); if (pts) base[m.winner] = clamp0(base[m.winner] + pts);
+      const bonus = pts ? `<span style="color:#0d6a33;font-weight:800">✅ ${TEAMS[m.winner].crest} ${esc(tName(m.winner))} 정답 +${pts}점</span> · ` : "";
       let body = "";
       if (needTarget) {
         body = `<div class="rank-prompt">⚡ ${esc(tName(owner))}, 저주를 걸 팀을 고르세요!</div>${teamButtons(others, "curseTarget")}`;
       } else {
         const tgt = k === "curse" ? m.target : owner;
-        const before = S.scores[tgt], after = itemResult(k, before);
+        const before = S.scores[tgt], after = itemResult(k, base[tgt]);
         body = k === "cloak"
-          ? `<div class="result-line none">아무 일도 일어나지 않았습니다… 🌫️</div>`
+          ? `<div class="result-line none">아이템 효과는 없어요… 🌫️</div>`
           : `<div class="score-change"><span class="lbl" style="${tStyle(tgt)}">${TEAMS[tgt].crest} ${esc(tName(tgt))}</span>
                <span>${before}</span><span class="arrow">➜</span><span class="to">${after}</span></div>`;
       }
@@ -521,7 +524,7 @@
         <h3 class="item-name">${esc(it.name)}</h3>
         <div class="item-effect">${esc(itemShort(k))}</div>
         ${m.itemQuiz
-          ? `<div class="sub">정답 <b>${esc(m.quiz.a)}</b> · ${m.passedFrom != null ? `🔄 ${esc(tName(m.passedFrom))}${josa(tName(m.passedFrom), "이", "가")} 넘긴 아이템 →` : m.stolen ? "⚡ 스틸 성공! " : ""}<b>${TEAMS[owner].crest} ${esc(tName(owner))}</b> ${k === "dementor" ? "😱 앗, 디멘터를 받았다…" : k === "cloak" ? "🌫️ 받았지만 꽝!" : "🎉 아이템 획득!"}</div>`
+          ? `<div class="sub" style="font-size:2.9vh">정답 <b>${esc(m.quiz.a)}</b> · ${bonus}${m.passedFrom != null ? `🔄 ${esc(tName(m.passedFrom))}${josa(tName(m.passedFrom), "이", "가")} 넘긴 아이템 →` : m.stolen ? "⚡ 스틸 성공! " : ""}<b>${TEAMS[owner].crest} ${esc(tName(owner))}</b> ${k === "dementor" ? "😱 앗, 디멘터를 받았다…" : k === "cloak" ? "🌫️ 받았지만 꽝!" : "🎉 아이템 획득!"}</div>`
           : needTarget ? "" : `<div class="sub">${esc(it.desc)}</div>`}
         ${body}
         <div class="actions">${needTarget ? "" : `<button class="btn big gold" data-act="finish" data-primary>확인 ▶ <kbd>Enter</kbd></button>`}</div>`;
@@ -530,7 +533,7 @@
       const w = m.winner;
       h = `${headHTML()}
         <h2 class="kind">🎁 아이템 획득 찬스!</h2>
-        <div class="sub">정답 <b>${esc(m.quiz.a)}</b> · ${m.stolen ? "⚡ 스틸 성공! " : "🎉 "}<b>${TEAMS[w].crest} ${esc(tName(w))}</b> 정답!</div>
+        <div class="sub">정답 <b>${esc(m.quiz.a)}</b> · ${m.stolen ? "⚡ 스틸 성공! " : "🎉 "}<b>${TEAMS[w].crest} ${esc(tName(w))}</b> 정답! <b>+${itemWinPoints(m)}점</b> (아이템을 넘겨도 점수는 우리 팀 것)</div>
         <div class="item-icon" style="font-size:8vh">🎁</div>
         <div class="rank-prompt">${esc(tName(w))}, 이 아이템… 직접 열까요? 다른 팀에게 넘길까요?</div>
         <div class="sub">좋은 것일까, 디멘터일까… 열기 전엔 아무도 몰라요! 🎲</div>
@@ -575,6 +578,9 @@
 
   function itemQuizCfg() { return Object.assign({ items: ["butterbeer", "felix", "curse", "dementor", "cloak"], timeLimit: C.quiz.timeLimit, stealTimeLimit: C.quiz.stealTimeLimit }, C.itemQuiz || {}); }
   function itemNeedsQuiz(k) { return itemQuizCfg().items.includes(k); }
+  // 아이템 찬스 문제를 맞힌 팀이 받는 정답 점수 (아이템 효과보다 먼저 적용)
+  function itemWinPoints(m) { return m.itemQuiz && m.winner != null ? (itemQuizCfg().points ?? C.quiz.points) : 0; }
+
   // 아이템 찬스 정답 → 양도 선택(설정 시) → 아이템 공개
   function afterItemWin(m) {
     if (itemQuizCfg().allowPass === false) { m.itemTeam = m.winner; goItem(m); return; }
@@ -799,7 +805,9 @@
         } else {
           const owner = m.itemTeam ?? m.team;
           const tgt = k === "curse" ? m.target : owner;
-          S.scores[tgt] = itemResult(k, S.scores[tgt]);
+          const pts = itemWinPoints(m);
+          if (pts) S.scores[m.winner] = clamp0(S.scores[m.winner] + pts);   // 정답 점수 먼저
+          S.scores[tgt] = itemResult(k, S.scores[tgt]);                      // 그다음 아이템 효과
           const by = m.passedFrom != null ? `🔄${tName(m.passedFrom)}→${tName(owner)} ` : owner !== m.team ? `⚡${tName(owner)} ` : "";
           env.summary = k === "curse" ? `${by}${C.items[k].name} → ${tName(tgt)}` : `${by}${C.items[k].name}`;
         }
@@ -915,7 +923,7 @@
         <table class="items">${ITEM_KEYS.map((k) => `<tr><td>${C.items[k].icon}</td><td>${esc(C.items[k].name)}</td><td>${esc(itemShort(k))}</td></tr>`).join("")}</table>
         <div class="foot">
           ${ITEM_KEYS.every(itemNeedsQuiz)
-            ? `<span>🎯 <b>상식 문제를 맞힌 팀</b>이 봉투 속 아이템을 받아요 — 복불복! 🎲 (틀리면 스틸)</span>
+            ? `<span>🎯 <b>상식 문제를 맞힌 팀</b>은 <b>+${itemQuizCfg().points ?? C.quiz.points}점</b>과 봉투 속 아이템을 받아요 — 복불복! 🎲 (틀리면 스틸)</span>
                ${itemQuizCfg().allowPass !== false ? `<span>🔄 열기 전에 <b>다른 팀에게 넘길 수도</b> 있어요!</span>` : ""}`
             : `<span>🎯 ${ITEM_KEYS.filter(itemNeedsQuiz).map((k) => C.items[k].icon).join("")} <b>상식 문제를 맞혀야</b> 받음 (틀리면 스틸!)</span>
                <span>💥 ${ITEM_KEYS.filter((k) => !itemNeedsQuiz(k)).map((k) => C.items[k].icon).join("")} <b>즉시 발동</b></span>`}
