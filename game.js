@@ -71,10 +71,10 @@
   }
 
   // 퀴즈 출제 순서: must:true 문제는 이번 판 퀴즈 봉투 안에 반드시 포함
-  function buildQuizOrder(quizEnvCount) {
-    const all = range(T.quizzes.length);
-    const must = all.filter((i) => T.quizzes[i].must);
-    const others = all.filter((i) => !T.quizzes[i].must);
+  function buildQuizOrder(quizEnvCount, list = T.quizzes) {
+    const all = range(list.length);
+    const must = all.filter((i) => list[i].must);
+    const others = all.filter((i) => !list[i].must);
     const pool = C.questionsInOrder ? others : shuffle(others);
     const k = Math.max(0, quizEnvCount - must.length);
     const picked = must.concat(pool.slice(0, k));
@@ -95,7 +95,7 @@
       envs,
       quizOrder: qn ? buildQuizOrder(envs.filter((e) => e.type === "quiz").length) : [],
       quizPtr: 0,
-      missionOrder: C.questionsInOrder ? range(mn) : shuffle(range(mn)),
+      missionOrder: mn ? buildQuizOrder(envs.filter((e) => e.type === "mission").length, T.missions) : [],
       itemQuizOrder: shuffle(range((T.itemQuizzes || []).length)),
       itemQuizPtr: 0,
       missionPtr: 0,

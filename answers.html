@@ -73,7 +73,7 @@
       const missions = T.missions.map((m, i) => `
         <div class="card mission" id="m${i + 1}">
           <div class="no">M${i + 1}</div>
-          <div class="q">${esc(m.title)}<span class="meta">${(m.time ?? C.mission.timeLimit) > 0 ? (m.time ?? C.mission.timeLimit) + "초" : "타이머 없음"}</span></div>
+          <div class="q">${esc(m.title)}<span class="meta">${(m.time ?? C.mission.timeLimit) > 0 ? (m.time ?? C.mission.timeLimit) + "초" : "타이머 없음"}</span>${m.must ? `<span class="meta" style="background:#ffe1a8;color:#7a4a00">★ 매 판 출제</span>` : ""}</div>
           <div class="hint">${esc(m.desc)}<br>${esc(m.how || "")}</div>
         </div>`).join("");
 
