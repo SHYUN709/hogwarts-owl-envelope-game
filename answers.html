@@ -94,7 +94,7 @@
 
       const items = ["butterbeer", "felix", "curse", "dementor", "cloak"].map((k) => {
         const it = C.items[k];
-        const eff = { butterbeer: `+${it.value}점`, felix: `현재 점수 ${it.value}배`, curse: `고른 팀 -${it.value}점`, dementor: "우리 팀 0점", cloak: "꽝 (변화 없음)" }[k];
+        const eff = { butterbeer: `+${it.value}점`, felix: `+${it.value}점`, curse: `고른 팀 -${it.value}점`, dementor: "우리 팀 0점", cloak: "꽝 (변화 없음)" }[k];
         return `<tr><td>${it.icon} ${esc(it.name)}</td><td><b>${eff}</b></td><td>${it.count}장</td></tr>`;
       }).join("");
 

@@ -36,7 +36,7 @@
     const it = C.items[k];
     switch (k) {
       case "butterbeer": return `+${it.value}점`;
-      case "felix": return `현재 점수 ${it.value}배`;
+      case "felix": return `+${it.value}점 대박!`;
       case "curse": return `다른 팀 -${it.value}점`;
       case "dementor": return "우리 팀 0점";
       default: return "꽝! 아무 일도 없음";
@@ -598,7 +598,7 @@
     const it = C.items[k];
     switch (k) {
       case "butterbeer": return clamp0(v + it.value);
-      case "felix": return clamp0(v * it.value);
+      case "felix": return clamp0(v + it.value);
       case "curse": return clamp0(v - it.value);
       case "dementor": return 0;
       default: return v;
