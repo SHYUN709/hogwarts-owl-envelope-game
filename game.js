@@ -447,9 +447,10 @@
   function openModal() { $("#modal").hidden = false; renderModal(); }
   function closeModal() {
     stopTimer();
+    const wasTally = modal && modal.stage === "tally";
     modal = null;
     $("#modal").hidden = true;
-    if (view === "board") renderGrid();
+    if (view === "board") { renderGrid(); if (!wasTally) setTimeout(autoTally, 600); }
   }
 
   function headHTML(label) {
@@ -750,7 +751,7 @@
       case "new":
         if (S && S.phase !== "draw" && !confirm("진행 중인 게임 기록이 지워집니다. 새 게임을 시작할까요?")) return;
         newGame(); view = "draw"; render(); break;
-      case "resume": view = S.phase === "end" ? "end" : S.phase === "board" ? "board" : "draw"; shown = S.scores.slice(); render(); break;
+      case "resume": view = S.phase === "end" ? "end" : S.phase === "board" ? "board" : "draw"; shown = S.scores.slice(); render(); if (view === "board") setTimeout(autoTally, 800); break;
       case "draw": doDraw(); break;
       case "start":
         commit(() => { S.phase = "board"; });
@@ -915,7 +916,7 @@
       setTimeout(() => { revealStep = 0; view = "end"; render(); }, 2600);
     } else {
       toast(`다음 차례: ${TEAMS[curTeam()].crest} ${tName(curTeam())}`);
-      if (tallyRound() > 0 && S.turn === tallyRound() * N) setTimeout(openTally, 1800);   // n바퀴 끝 → 중간 집계
+      setTimeout(autoTally, 1800);   // n바퀴 끝 → 중간 집계
     }
   }
 
@@ -1040,8 +1041,15 @@
       </div>`;
     }).join("")}</div>`;
   }
+  // 중간 집계를 아직 안 봤으면 띄움. 다른 창이 열려 있으면 그 창이 닫힐 때 다시 시도
+  function autoTally() {
+    if (!tallyReached() || S.tallyShown) return;
+    if (modal) return;   // closeModal() 에서 다시 부름
+    openTally();
+  }
   function openTally() {
     if (modal) return;
+    S.tallyShown = true; save();
     modal = { stage: "tally", env: -1, team: 0 };
     openModal();
     sfx.sparkle();
