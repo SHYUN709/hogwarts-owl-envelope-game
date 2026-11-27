@@ -78,7 +78,6 @@ window.GAME_CONFIG = {
   //    목록에서 지우거나 파일이 없으면 예전 합성음이 대신 나옵니다.
   sounds: {
     pick: "maximize_008.ogg",       // 봉투 고르기 · 팀 선택
-    open: "jingles_PIZZI07.ogg",    // 봉투 열기
     tick: "tick_002.ogg",           // 타이머 마지막 5초
     correct: "jingles_NES03.ogg",   // 정답
     wrong: "jingles_NES07.ogg",     // 오답

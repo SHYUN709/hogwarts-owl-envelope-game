@@ -166,7 +166,6 @@
   }
   const sfx = {
     pick: () => { tone(660, 0.12, "triangle"); tone(990, 0.15, "triangle", 0.12, 0.08); },
-    open: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.35, "sine", 0.14, i * 0.09)),
     tick: () => tone(1200, 0.06, "square", 0.06),
     buzz: () => { tone(160, 0.6, "sawtooth", 0.16); tone(120, 0.6, "sawtooth", 0.12, 0.05); },
     correct: () => [523, 659, 784].forEach((f, i) => { tone(f, 0.5, "triangle", 0.14, i * 0.1); tone(f * 2, 0.5, "sine", 0.06, i * 0.1); }),
@@ -773,7 +772,6 @@
         const env = S.envs[m.env];
         const big = $("#big-env"); big.classList.remove("hover-bob"); big.classList.add("opening");
         big.querySelector(".note").textContent = env.type === "item" ? "🎁" : TYPE_ICON[env.type];
-        sfx.open();
         setTimeout(() => {
           if (modal !== m) return;
           burstOn(big, "#e8c46a", 40);
