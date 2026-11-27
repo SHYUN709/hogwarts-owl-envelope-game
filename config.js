@@ -60,7 +60,7 @@ window.GAME_CONFIG = {
 
   // 퀴즈·미션 봉투 개수. (퀴즈 + 미션 + 아이템 합계 = 24 가 되어야 함)
   // 합이 24보다 모자라면 나머지는 퀴즈로 채워집니다.
-  envelopeMix: { quiz: 8, mission: 4 },   // + 아이템 12장 = 24
+  envelopeMix: { quiz: 7, mission: 5 },   // + 아이템 12장 = 24
 
   // true: 게임 시작마다 봉투 내용을 무작위로 섞음
   // false: 아래 fixedLayout대로 고정 (예: A: "quiz", B: "mission", C: "item:curse")
