@@ -10,12 +10,19 @@ window.GAME_CONFIG = {
 
   // 기숙사 팀 (순서 = 점수판 표시 순서)
   teams: [
-    { id: "gryffindor", name: "그리핀도르", crest: "🦁", color: "#9c1c1c", accent: "#f0c75e" },
-    { id: "slytherin",  name: "슬리데린",   crest: "🐍", color: "#1d5a36", accent: "#c9d1d3" },
-    { id: "ravenclaw",  name: "래번클로",   crest: "🦅", color: "#22377a", accent: "#c79a5b" },
-    { id: "hufflepuff", name: "후플푸프",   crest: "🦡", color: "#b8860b", accent: "#2b2118" },
+    // gem = 중간 집계 모래시계 속 보석 색 (루비·에메랄드·사파이어·노란 다이아몬드)
+    { id: "gryffindor", name: "그리핀도르", crest: "🦁", color: "#9c1c1c", accent: "#f0c75e", gem: "#e0243a" },
+    { id: "slytherin",  name: "슬리데린",   crest: "🐍", color: "#1d5a36", accent: "#c9d1d3", gem: "#19b35a" },
+    { id: "ravenclaw",  name: "래번클로",   crest: "🦅", color: "#22377a", accent: "#c79a5b", gem: "#2f74ff" },
+    { id: "hufflepuff", name: "후플푸프",   crest: "🦡", color: "#b8860b", accent: "#2b2118", gem: "#ffd21f" },
   ],
   membersPerTeam: 10,   // 규칙 안내에 표시만 함
+
+  // 🔐 비공개 점수: 게임 중엔 점수를 잠긴 금고로만 보여주고, 마지막에 금고를 하나씩 열어 공개
+  //    (게임 중 사회자 확인용: 노트북에서 Shift 키를 누르고 있는 동안만 점수가 보임)
+  hiddenScores: true,
+  // ⏳ 중간 집계: 이 바퀴가 끝나면 숫자 없이 보석 모래시계로 대략적인 차이만 보여줌 (0 = 끔)
+  midTallyAfterRound: 3,
 
   // 퀴즈 봉투
   quiz: {

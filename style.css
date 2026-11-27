@@ -439,3 +439,111 @@ kbd {
   border-radius: 8px; padding: .1em .6em;
 }
 .panel .answer.long { font-family: var(--font-ko); font-size: 3vh; line-height: 1.5; max-width: 92%; font-weight: 700; }
+
+/* =====================================================================
+   🔐 비공개 점수: 잠긴 금고 · 금화 · 모래시계 · 금고 오픈
+   ===================================================================== */
+/* 금화 (CSS로 그린 갈레온) */
+.coin {
+  display: inline-block; width: 3.4vh; height: 3.4vh; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6c8 0 12%, #ffd75e 30%, #e0a826 62%, #a8730f 100%);
+  box-shadow: inset 0 0 0 .3vh #c48d1a, inset 0 0 0 .55vh #ffe38a, 0 .3vh .6vh #0006;
+  position: relative;
+}
+.coin::after {
+  content: "G"; position: absolute; inset: 0; display: grid; place-items: center;
+  font-family: var(--font-title); font-weight: 900; font-size: 1.8vh; color: #8a5a06; text-shadow: 0 1px 0 #ffe9a0;
+}
+.coin-fly { position: fixed; left: 0; top: 0; z-index: 95; pointer-events: none; margin: -1.7vh 0 0 -1.7vh; }
+
+/* 점수판의 잠긴 금고 — 비공개 모드에서만 보임 */
+.team-card .vault { display: none; }
+body.hide-scores .team-card .score.real { display: none; }
+body.hide-scores .team-card .vault { display: grid; }
+body.hide-scores.peek .team-card .score.real { display: block; }
+body.hide-scores.peek .team-card .vault { display: none; }
+body.hide-scores .team-btn .s { visibility: hidden; }
+body.hide-scores.peek .team-btn .s { visibility: visible; }
+.vault {
+  position: relative; place-items: center; width: 10vh; height: 10vh; border-radius: 1.4vh;
+  background: linear-gradient(145deg, #6b6f78, #3a3d44 60%, #2a2c31);
+  box-shadow: inset 0 0 0 .4vh #8e939d, inset 0 0 0 .7vh #2a2c31, 0 .5vh 1.2vh #000a;
+}
+.vault-door {
+  width: 72%; height: 72%; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 40% 35%, #c9ced6, #8a9099 55%, #5a5f68);
+  box-shadow: inset 0 0 0 .35vh #4a4e56, 0 .2vh .4vh #0008;
+}
+.vault-dial {
+  width: 40%; height: 40%; border-radius: 50%;
+  background: conic-gradient(#e8c46a 0 8%, #5a5f68 8% 25%, #e8c46a 25% 33%, #5a5f68 33% 50%, #e8c46a 50% 58%, #5a5f68 58% 75%, #e8c46a 75% 83%, #5a5f68 83%);
+  box-shadow: 0 0 0 .3vh #3a3d44;
+}
+.vault-lock { position: absolute; right: -.6vh; bottom: -.6vh; font-size: 3.2vh; filter: drop-shadow(0 .2vh .3vh #000a); }
+.team-card.vault-bump .vault { animation: vaultBump .35s ease-out; }
+@keyframes vaultBump { 40% { transform: scale(1.15); box-shadow: inset 0 0 0 .4vh #ffd75e, inset 0 0 0 .7vh #2a2c31, 0 0 2.4vh #ffd75e; } }
+.team-card.vault-shake .vault { animation: vaultShake .5s ease-in-out; }
+@keyframes vaultShake { 20%, 60% { transform: translateX(-.8vh) rotate(-4deg); } 40%, 80% { transform: translateX(.8vh) rotate(4deg); } }
+
+/* 아이템 화면: 비공개 모드에서 숫자 대신 문장 */
+.score-change.hidden-change { font-family: var(--font-ko); font-size: 4.2vh; }
+.score-change.hidden-change b { color: var(--seal); }
+
+/* ⏳ 중간 집계 모래시계 */
+.hourglasses { display: flex; gap: 3vw; justify-content: center; align-items: flex-end; margin: 1vh 0; }
+.hg { display: flex; flex-direction: column; align-items: center; gap: 1.4vh; }
+.hg-glass { width: 13vh; display: flex; flex-direction: column; align-items: center; }
+.hg-cap { width: 100%; height: 1.6vh; border-radius: .6vh; background: linear-gradient(#e8c46a, #9c7020); box-shadow: 0 .3vh .5vh #0006; }
+.hg-bulb {
+  position: relative; width: 84%; height: 15vh; overflow: hidden;
+  background: linear-gradient(90deg, #ffffff30, #ffffff70 30%, #ffffff25 70%, #ffffff50);
+  box-shadow: inset 0 0 1vh #0003;
+}
+.hg-bulb.top { clip-path: polygon(0 0, 100% 0, 58% 100%, 42% 100%); }
+.hg-bulb.bottom { clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%); }
+.hg-neck { position: relative; width: 16%; height: 2vh; background: #ffffff50; }
+.hg-stream { position: absolute; left: 42%; width: 16%; top: 0; bottom: 0; background: var(--gem); animation: stream .5s linear infinite; opacity: .9; }
+@keyframes stream { 50% { opacity: .4; } }
+.hg-sand {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(circle at 20% 30%, #fff9 0 6%, transparent 8%),
+    radial-gradient(circle at 70% 60%, #fff8 0 5%, transparent 7%),
+    radial-gradient(circle at 45% 80%, #fff7 0 4%, transparent 6%),
+    linear-gradient(180deg, color-mix(in srgb, var(--gem) 70%, #fff), var(--gem) 40%, color-mix(in srgb, var(--gem) 70%, #000));
+  background-size: 2.2vh 2.2vh, 2.6vh 2.6vh, 1.8vh 1.8vh, 100% 100%;
+  box-shadow: inset 0 .4vh .6vh #fff6;
+}
+.hg-bulb.bottom .hg-sand { animation: sandFill 2.6s cubic-bezier(.3,.6,.4,1) var(--delay) both; }
+.hg-bulb.top .hg-sand { animation: sandDrain 2.6s cubic-bezier(.3,.6,.4,1) var(--delay) both; }
+@keyframes sandFill { from { height: 0; } }
+@keyframes sandDrain { from { height: 100%; } }
+.hg-name {
+  font-size: 3vh; font-weight: 800; color: #fff; padding: .2em .9em; border-radius: 999px;
+  background: var(--color); box-shadow: 0 .3vh .6vh #0005; white-space: nowrap;
+}
+
+/* 🔐 금고 오픈 화면 */
+.vaults { display: flex; gap: 2vw; justify-content: center; }
+.vault-card {
+  width: 19vw; padding: 2.4vh 1vw; border-radius: 18px; display: flex; flex-direction: column; align-items: center; gap: 1vh;
+  background: linear-gradient(160deg, var(--color), color-mix(in srgb, var(--color) 45%, #000));
+  border: 3px solid var(--accent); box-shadow: 0 1vh 3vh #0009; color: #fff;
+}
+.vault-card .crest { font-size: 7vh; }
+.vault-card .tname { font-size: 3.4vh; }
+.big-vault {
+  position: relative; width: 16vh; height: 16vh; border-radius: 2vh; display: grid; place-items: center;
+  background: linear-gradient(145deg, #6b6f78, #3a3d44 60%, #2a2c31);
+  box-shadow: inset 0 0 0 .5vh #8e939d, inset 0 0 0 .9vh #2a2c31, 0 .6vh 1.4vh #000a;
+}
+.big-vault .vault-lock { font-size: 5vh; }
+.vault-card.open .big-vault { background: radial-gradient(circle at 50% 70%, #3b2a06, #1a1203); box-shadow: inset 0 0 2.4vh #000, 0 0 3vh #ffd75e; }
+.vault-gold { display: flex; flex-wrap: wrap-reverse; justify-content: center; align-content: flex-start; gap: .3vh; width: 80%; animation: pop .5s ease-out; }
+.vault-gold .coin { width: 3vh; height: 3vh; margin: -.25vh; }
+.vault-gold .coin::after { font-size: 1.5vh; }
+.vault-amount { font-family: var(--font-en); font-weight: 800; font-size: 8vh; line-height: 1; text-shadow: 0 0 2vh #0009; }
+.vault-card:not(.open) .vault-amount { color: #ffffff55; }
+.vault-unit { font-size: 2.6vh; color: var(--gold-soft); }
+.vault-rank { font-family: var(--font-en); font-weight: 900; font-size: 3.4vh; color: var(--gold); }
+.vault-card.shaking .big-vault { animation: vaultShake .25s ease-in-out infinite; }

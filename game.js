@@ -171,6 +171,9 @@
     dark: () => { tone(220, 1.2, "sawtooth", 0.1, 0, 55); tone(233, 1.2, "sine", 0.1, 0, 60); },
     sparkle: () => range(6).forEach((i) => tone(1500 + Math.random() * 1500, 0.15, "sine", 0.05, i * 0.06)),
     zap: () => { tone(1800, 0.3, "sawtooth", 0.1, 0, 200); tone(90, 0.4, "square", 0.08, 0.15); },
+    coin: () => { tone(1975, 0.07, "square", 0.045); tone(2637, 0.18, "sine", 0.07, 0.05); },
+    drum: () => range(10).forEach((i) => tone(110 + (i % 2) * 8, 0.09, "triangle", 0.12, i * 0.09)),
+    vault: () => { tone(220, 0.15, "square", 0.08); tone(160, 0.35, "sawtooth", 0.07, 0.12); [784, 988, 1319].forEach((f, i) => tone(f, 0.4, "triangle", 0.12, 0.45 + i * 0.1)); },
   };
 
   /* ====================== 연출 ====================== */
@@ -205,8 +208,42 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
   }
 
+  /* ====================== 비공개 점수 (잠긴 금고) ====================== */
+  // 게임 중엔 총점을 숨기고, 결과 발표에서 금고를 열면(S.revealed) 공개
+  const hiddenMode = () => C.hiddenScores !== false && !!S && !S.revealed;
+  function syncHideClass() { document.body.classList.toggle("hide-scores", hiddenMode()); }
+  let revealStep = 0;   // 결과 발표에서 몇 개의 금고를 열었는지
+
+  // 금화가 날아가는 연출: d>0 이면 화면 가운데 → 팀 금고로, d<0 이면 금고에서 우수수 쏟아짐
+  function coinFly(i, d) {
+    const card = document.querySelector(`.team-card[data-team="${i}"]`);
+    if (!card || !d) return;
+    const r = card.getBoundingClientRect();
+    const cx = r.left + r.width * 0.78, cy = r.top + r.height / 2;
+    const n = Math.max(1, Math.min(8, Math.round(Math.abs(d) / 10)));
+    for (let k = 0; k < n; k++) {
+      const c = document.createElement("div");
+      c.className = "coin coin-fly";
+      document.body.appendChild(c);
+      const sx = d > 0 ? innerWidth / 2 + (Math.random() - 0.5) * 240 : cx;
+      const sy = d > 0 ? innerHeight * 0.55 + (Math.random() - 0.5) * 120 : cy;
+      const ex = d > 0 ? cx : cx + (Math.random() - 0.5) * 260;
+      const ey = d > 0 ? cy : cy + 220 + Math.random() * 160;
+      const a = c.animate([
+        { transform: `translate(${sx}px,${sy}px) scale(1) rotateY(0deg)`, opacity: 1 },
+        { transform: `translate(${ex}px,${ey}px) scale(${d > 0 ? 0.55 : 0.8}) rotateY(720deg)`, opacity: d > 0 ? 1 : 0 },
+      ], { duration: 650 + k * 40, delay: k * 110, easing: d > 0 ? "cubic-bezier(.4,0,.6,1)" : "cubic-bezier(.3,.1,.7,1)", fill: "forwards" });
+      a.onfinish = () => {
+        c.remove();
+        if (d > 0) { sfx.coin(); card.classList.remove("vault-bump"); void card.offsetWidth; card.classList.add("vault-bump"); }
+      };
+    }
+    if (d < 0) { sfx.wrong(); card.classList.remove("vault-shake"); void card.offsetWidth; card.classList.add("vault-shake"); }
+  }
+
   /* ====================== 화면 전환 ====================== */
   function render() {
+    syncHideClass();
     document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
     $("#screen-" + view).classList.add("active");
     if (view === "title") renderTitle();
@@ -298,15 +335,18 @@
           <div class="tname">${esc(t.name)}</div>
           <div class="pips">${range(ROUNDS).map((k) => `<span class="pip ${k < S.picks[i] ? "on" : ""}"></span>`).join("")}</div>
         </div>
-        <div class="score" id="score-${i}">${S.scores[i]}</div>
+        <div class="score real" id="score-${i}">${S.scores[i]}</div>
+        <div class="vault" aria-label="잠긴 금고"><div class="vault-door"><div class="vault-dial"></div></div><span class="vault-lock">🔒</span></div>
         <div class="adj">
           <button data-act="adj" data-arg="${i}:-1" title="점수 수동 감점">−${C.manualAdjustStep}</button>
           <button data-act="adj" data-arg="${i}:1" title="점수 수동 가점">+${C.manualAdjustStep}</button>
         </div>
       </div>`).join("");
     // 점수 변화 애니메이션
+    syncHideClass();
     S.scores.forEach((v, i) => {
       const d = v - shown[i];
+      if (d !== 0 && hiddenMode()) { coinFly(i, d); return; }   // 비공개: 숫자 대신 금화만
       if (d !== 0) {
         const card = document.querySelector(`.team-card[data-team="${i}"]`);
         const sc = $("#score-" + i);
@@ -357,6 +397,7 @@
       <div class="order">${S.order.map((ti, k) => `${k ? "<span>›</span>" : ""}<span class="chip ${ti === cur ? "now" : ""}" style="${tStyle(ti)}">${TEAMS[ti].crest} ${esc(TEAMS[ti].name)}</span>`).join("")}</div>
       <div class="keys">
         ${over ? `<button data-act="toEnd" style="border-color:var(--gold);color:var(--gold);font-size:2.2vh">🏆 결과 보기</button> ` : "봉투 글자키로 선택 · "}
+        ${tallyReached() ? `<button data-act="tally">⏳ 중간 집계</button>` : ""}
         <a href="answers.html" target="_blank" rel="noopener" style="color:inherit;border:1px solid #fff5;border-radius:6px;padding:.1em .5em;text-decoration:none">📋 답안지</a> <button data-act="rules">1 규칙</button> <button data-act="items">2 아이템</button>
         <button data-act="undo">Ctrl+Z 되돌리기</button> <button data-act="sound">${soundOn ? "🔊" : "🔇"}</button>
         <button data-act="home">⌂</button>
@@ -513,8 +554,17 @@
       } else {
         const tgt = k === "curse" ? m.target : owner;
         const before = S.scores[tgt], after = itemResult(k, base[tgt]);
+        const lbl = `<span class="lbl" style="${tStyle(tgt)}">${TEAMS[tgt].crest} ${esc(tName(tgt))}</span>`;
+        const hiddenLine = {
+          butterbeer: `🪙 금고에 <b>${C.items[k].value} 갈레온</b> 입금!`,
+          felix: `🪙🪙 금고에 <b>${C.items[k].value} 갈레온</b> 대박 입금!`,
+          curse: `💸 금고에서 <b>${C.items[k].value} 갈레온</b> 증발!`,
+          dementor: `🕳️ 금고가 텅 비었다…`,
+        }[k];
         body = k === "cloak"
           ? `<div class="result-line none">아이템 효과는 없어요… 🌫️</div>`
+          : hiddenMode()
+          ? `<div class="score-change hidden-change">${lbl}<span>${hiddenLine}</span></div>`
           : `<div class="score-change"><span class="lbl" style="${tStyle(tgt)}">${TEAMS[tgt].crest} ${esc(tName(tgt))}</span>
                <span>${before}</span><span class="arrow">➜</span><span class="to">${after}</span></div>`;
       }
@@ -552,6 +602,15 @@
         <div class="result-line none">💨 아무도 맞히지 못해 아이템이 사라졌어요</div>
         <div class="sub">봉투 속 아이템은… ${it.icon} <b>${esc(it.name)}</b> (${esc(itemShort(e.item))})</div>
         <div class="actions"><button class="btn big gold" data-act="finish" data-primary>다음 차례 ▶ <kbd>Enter</kbd></button></div>`;
+    }
+
+    /* ---------- 중간 집계 (모래시계) ---------- */
+    else if (m.stage === "tally") {
+      h = `<div class="head"><span>⏳ ${tallyRound()}바퀴 종료</span></div>
+        <h2 class="kind">⏳ 중간 집계 <span class="tag-en">HOUSE HOURGLASSES</span></h2>
+        <div class="sub">모래시계에 보석이 많이 쌓일수록 금고에 금화가 많아요! 정확한 금액은… 마지막 금고 오픈 때 공개 🔐</div>
+        ${hourglassesHTML()}
+        <div class="actions"><button class="btn big gold" data-act="cancel" data-primary>계속하기 ▶ <kbd>Enter</kbd></button></div>`;
     }
 
     /* ---------- 동점 결승 ---------- */
@@ -668,6 +727,9 @@
         view = "board"; shown = S.scores.slice(); render();
         toast(`첫 순서: ${tName(S.order[0])}`); break;
       case "toEnd": view = "end"; render(); break;
+      case "tally": openTally(); break;
+      case "openVault": openNextVault(); break;
+      case "toPodium": revealStep = N; S.revealed = true; save(); render(); break;
       case "toBoard": view = "board"; render(); break;
       case "pick": pickEnvelope(+arg); break;
       case "adj": {
@@ -821,9 +883,10 @@
     renderBoard();
     if (S.turn >= TOTAL) {
       setTimeout(() => { toast("🏁 24개 봉투를 모두 열었어요! 결과 발표!"); }, 600);
-      setTimeout(() => { view = "end"; render(); }, 2600);
+      setTimeout(() => { revealStep = 0; view = "end"; render(); }, 2600);
     } else {
       toast(`다음 차례: ${TEAMS[curTeam()].crest} ${tName(curTeam())}`);
+      if (tallyRound() > 0 && S.turn === tallyRound() * N) setTimeout(openTally, 1800);   // n바퀴 끝 → 중간 집계
     }
   }
 
@@ -839,7 +902,59 @@
     const max = Math.max(...S.scores);
     return range(N).filter((i) => S.scores[i] === max);
   }
+  /* ---------- 🔐 금고 오픈 (비공개 모드 결과 발표) ---------- */
+  function renderVaultReveal() {
+    const { idx, rank } = standings();
+    const order = idx.slice().reverse();               // 가장 적게 모은 팀부터
+    const opened = new Set(order.slice(0, revealStep));
+    const next = order[revealStep];
+    $("#screen-end").innerHTML = `
+      <h2 class="end-title">🔐 금고 오픈!</h2>
+      <div class="tie-note" style="color:var(--parchment)">${revealStep === 0 ? "가장 적게 모은 기숙사부터 금고를 엽니다…" : revealStep < N ? "다음 금고는 과연…?" : "모든 금고가 열렸습니다!"}</div>
+      <div class="vaults">${TEAMS.map((t, i) => {
+        const o = opened.has(i);
+        return `<div class="vault-card ${o ? "open" : ""}" style="${tStyle(i)}" data-team="${i}">
+          <div class="crest">${t.crest}</div>
+          <div class="tname">${esc(t.name)}</div>
+          <div class="big-vault">
+            ${o ? `<div class="vault-gold">${"<span class=\"coin\"></span>".repeat(Math.min(15, Math.max(1, Math.round(S.scores[i] / 8))))}</div>`
+                : `<div class="vault-door"><div class="vault-dial"></div></div><span class="vault-lock">🔒</span>`}
+          </div>
+          <div class="vault-amount" id="va-${i}">${o ? S.scores[i] : "?"}</div>
+          <div class="vault-unit">${o ? "갈레온" : "&nbsp;"}</div>
+          <div class="vault-rank">${o ? `${rank[i]}위` : "&nbsp;"}</div>
+        </div>`;
+      }).join("")}</div>
+      <div class="end-actions">
+        ${revealStep < N
+          ? `<button class="btn big gold" data-act="openVault" data-primary>🔓 ${rank[next]}위 금고 열기 <kbd>Enter</kbd></button>`
+          : `<button class="btn big gold" data-act="toPodium" data-primary>🏆 시상식 보기 <kbd>Enter</kbd></button>`}
+        <button class="btn ghost" data-act="toBoard">게임판 보기</button>
+        <button class="btn ghost" data-act="undo">↶ 되돌리기</button>
+      </div>`;
+  }
+  let vaultBusy = false;
+  function openNextVault() {
+    if (revealStep >= N || vaultBusy) return;
+    vaultBusy = true;
+    const ti = standings().idx.slice().reverse()[revealStep];
+    const btn = document.querySelector('[data-act="openVault"]'); if (btn) btn.disabled = true;
+    const card = document.querySelector(`.vault-card[data-team="${ti}"]`); if (card) card.classList.add("shaking");
+    sfx.drum();
+    setTimeout(() => {
+      vaultBusy = false;
+      revealStep++;
+      renderVaultReveal();
+      sfx.vault();
+      const amt = $("#va-" + ti); if (amt) countUp(amt, 0, S.scores[ti]);
+      const c2 = document.querySelector(`.vault-card[data-team="${ti}"]`);
+      if (c2) { burstOn(c2, "#ffd76a", 46); for (let k = 0; k < 5; k++) setTimeout(sfx.coin, 300 + k * 140); }
+      if (revealStep === N) setTimeout(() => sfx.fanfare(), 900);
+    }, 1000);
+  }
+
   function renderEnd() {
+    if (hiddenMode()) { renderVaultReveal(); return; }
     const { idx, rank } = standings();
     const tied = topTied();
     const isTie = tied.length > 1 && S.tieWinner === null;
@@ -876,6 +991,34 @@
       setTimeout(() => { const w = document.querySelector(".podium .winner .stand"); for (let k = 0; k < 4; k++) setTimeout(() => burstOn(w, k % 2 ? "#fff3c4" : TEAMS[winner].accent, 40), k * 350); }, 200);
     }
   }
+  /* ---------- 중간 집계 ---------- */
+  const tallyRound = () => C.midTallyAfterRound || 0;
+  const tallyReached = () => tallyRound() > 0 && S && S.turn >= tallyRound() * N && S.turn < TOTAL;
+  function hourglassesHTML() {
+    const max = Math.max(...S.scores);
+    return `<div class="hourglasses">${TEAMS.map((t, i) => {
+      // 1등 대비 상대적인 높이만 보여줌 (정확한 점수는 비밀)
+      const pct = max > 0 ? Math.round(6 + (S.scores[i] / max) * 80) : 6;
+      return `<div class="hg" style="--gem:${t.gem || t.accent};--color:${t.color};--delay:${i * 0.25}s">
+        <div class="hg-glass">
+          <div class="hg-cap"></div>
+          <div class="hg-bulb top"><div class="hg-sand" style="height:${100 - pct}%"></div></div>
+          <div class="hg-neck"><div class="hg-stream"></div></div>
+          <div class="hg-bulb bottom"><div class="hg-sand" style="height:${pct}%"></div></div>
+          <div class="hg-cap"></div>
+        </div>
+        <div class="hg-name">${t.crest} ${esc(t.name)}</div>
+      </div>`;
+    }).join("")}</div>`;
+  }
+  function openTally() {
+    if (modal) return;
+    modal = { stage: "tally", env: -1, team: 0 };
+    openModal();
+    sfx.sparkle();
+    setTimeout(() => { for (let k = 0; k < 6; k++) setTimeout(sfx.coin, k * 260); }, 300);
+  }
+
   function openTie() {
     modal = { stage: "tie", tied: topTied(), showAnswer: false, env: -1, team: 0 };
     openModal();
@@ -893,7 +1036,8 @@
           <li><span class="b">🎲</span><span>첫 순서는 <em>랜덤 추첨</em>! 정해진 순서대로 한 장씩</span></li>
           <li><span class="b">🔁</span><span><em>${ROUNDS}바퀴</em> = 팀당 ${ROUNDS}번 → ${TOTAL}장 모두 열리면 끝</span></li>
           <li><span class="b">📦</span><span>봉투 속엔 📜 <em>퀴즈</em> · ⚔️ <em>미션</em> · 🎁 <em>아이템</em></span></li>
-          <li><span class="b">🏆</span><span>최고 점수 팀 우승! 동점이면 <em>결승 문제 1개</em></span></li>
+          ${C.hiddenScores !== false ? `<li><span class="b">🔐</span><span>점수는 <em>잠긴 금고</em>에 비밀!${tallyRound() ? ` ${tallyRound()}바퀴 뒤 <em>⏳ 모래시계</em>로 살짝 공개` : ""}</span></li>` : ""}
+          <li><span class="b">🏆</span><span>마지막에 금고 오픈! 가장 많이 모은 팀 우승 · 동점이면 <em>결승 문제</em></span></li>
         </ul>
       </div>`,
       `<div class="slide parchment">
@@ -965,9 +1109,14 @@
     else document.documentElement.requestFullscreen?.().catch(() => toast("F11 키로 전체화면을 켜 주세요"));
   }
 
+  // 사회자 몰래 보기: Shift 를 누르고 있는 동안만 실제 점수 표시
+  document.addEventListener("keyup", (ev) => { if (ev.key === "Shift") document.body.classList.remove("peek"); });
+  window.addEventListener("blur", () => document.body.classList.remove("peek"));
+
   document.addEventListener("keydown", (ev) => {
     ac();
     const k = ev.key;
+    if (k === "Shift") { document.body.classList.add("peek"); return; }
     if ((ev.ctrlKey || ev.metaKey) && (k === "z" || k === "Z")) { ev.preventDefault(); if (rulesSlide >= 0) closeRules(); undo(); return; }
     if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
 
@@ -985,7 +1134,7 @@
     if (k === "9") { act("sound"); return; }
 
     if (modal) {
-      if (k === "Escape" && (modal.stage === "confirm" || modal.stage === "tie")) { closeModal(); return; }
+      if (k === "Escape" && (modal.stage === "confirm" || modal.stage === "tie" || modal.stage === "tally")) { closeModal(); return; }
       if (k === " ") { ev.preventDefault(); if (modal.timer) toggleTimer(); return; }
       if (k === "Enter") { ev.preventDefault(); const p = document.querySelector("#modal-panel [data-primary]"); if (p) p.click(); return; }
       return;
