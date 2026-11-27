@@ -819,7 +819,6 @@
         burstOn($("#modal-panel"), TEAMS[m.team].accent, 50); break;
       case "wrong":
         stopTimer(); sfx.wrong();
-        setTimeout(() => sfx.steal(), 350);
         m.timer = null; m.timeout = false; m.stage = "steal"; renderModal(); break;
       case "stealTeam":
         m.stealTeam = +arg; m.timeout = false;
