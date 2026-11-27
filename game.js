@@ -182,6 +182,7 @@
     vault: () => { tone(220, 0.15, "square", 0.08); tone(160, 0.35, "sawtooth", 0.07, 0.12); [784, 988, 1319].forEach((f, i) => tone(f, 0.4, "triangle", 0.12, 0.45 + i * 0.1)); },
   };
   // config.sounds 에 있는 효과음은 파일(vendor/sounds)로 재생, 파일을 못 읽으면 위 합성음으로 대체
+  const synthSfx = { ...sfx };   // 파일로 바꾸기 전 원래 합성음 (순서 추첨에서 사용)
   Object.entries(C.sounds || {}).forEach(([k, file]) => {
     const synth = sfx[k];
     if (!synth || !file) return;
@@ -331,7 +332,7 @@
     const iv = setInterval(() => {
       const r = shuffle(range(N));
       nos().forEach((el, k) => (el.textContent = r[k] + 1));
-      sfx.tick();
+      synthSfx.tick();
     }, 110);
     setTimeout(() => {
       clearInterval(iv);
@@ -339,7 +340,7 @@
       drawing = false;
       save();
       renderDraw();
-      sfx.fanfare();
+      synthSfx.fanfare();
       document.querySelectorAll(".draw-card").forEach((c, k) => setTimeout(() => burstOn(c, TEAMS[+c.dataset.team].accent, 18), k * 120));
     }, 1900);
   }
