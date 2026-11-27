@@ -40,10 +40,11 @@ window.GAME_CONFIG = {
 
   // 아이템 봉투  (count = 24장 중 몇 장 넣을지, value = 효과 숫자)
   items: {
-    butterbeer: { name: "버터맥주",        icon: "🍺", count: 4, value: 20, desc: "따끈한 버터맥주 한 잔! 점수를 얻는다." },        // +value점
+    butterbeer: { name: "버터맥주",        icon: "🍺", count: 3, value: 20, desc: "따끈한 버터맥주 한 잔! 점수를 얻는다." },        // +value점
     felix:      { name: "펠릭스 펠리시스", icon: "🧪", count: 2, value: 50, desc: "행운의 물약! 엄청난 행운이 쏟아진다." },          // +value점 (대박 아이템)
     curse:      { name: "저주 주문",       icon: "⚡", count: 3, value: 20, desc: "공격할 팀을 직접 골라 점수를 깎는다." },        // 고른 팀 -value점
-    dementor:   { name: "디멘터",          icon: "👻", count: 2, value: 40, desc: "디멘터가 행복을 빨아들였다… 점수를 잃는다." },     // 우리 팀 -value점
+    polyjuice:  { name: "폴리주스 마법약", icon: "🔄", count: 2,            desc: "마시면 다른 사람으로 변신! 고른 팀과 점수를 통째로 바꾼다." },     // 고른 팀과 점수 맞바꾸기
+    dementor:   { name: "디멘터",          icon: "👻", count: 1, value: 40, desc: "디멘터가 행복을 빨아들였다… 점수를 잃는다." },     // 우리 팀 -value점
     cloak:      { name: "투명 망토",       icon: "🧥", count: 1,            desc: "망토 속엔 아무것도 없었다." },                    // 꽝
   },
 
@@ -51,7 +52,7 @@ window.GAME_CONFIG = {
   // 맞힌 팀이 봉투 속 아이템을 그대로 받음 (좋은 것이든 디멘터·꽝이든 복불복!)
   // 틀리면 스틸 가능, 스틸까지 실패하면 아이템 소멸. 목록에서 빼면 그 아이템은 문제 없이 즉시 발동.
   itemQuiz: {
-    items: ["butterbeer", "felix", "curse", "dementor", "cloak"],
+    items: ["butterbeer", "felix", "curse", "polyjuice", "dementor", "cloak"],
     timeLimit: 15,       // 고른 팀 제한시간(초)
     stealTimeLimit: 10,  // 스틸 팀 제한시간(초)
     points: 10,          // 아이템 문제를 맞힌 팀이 받는 점수 (아이템 효과보다 먼저 적용, 넘겨도 맞힌 팀이 받음)

@@ -9,7 +9,7 @@
   const TOTAL = LETTERS.length;
   const ROUNDS = Math.round(TOTAL / N);
   const SAVE_KEY = "hp-owl-envelope-game-v1";
-  const ITEM_KEYS = ["butterbeer", "felix", "curse", "dementor", "cloak"];
+  const ITEM_KEYS = ["butterbeer", "felix", "curse", "polyjuice", "dementor", "cloak"];
   const TYPE_ICON = { quiz: "📜", mission: "⚔️" };
 
   const $ = (s) => document.querySelector(s);
@@ -43,6 +43,7 @@
       case "butterbeer": return `+${it.value}점`;
       case "felix": return `+${it.value}점 대박!`;
       case "curse": return `다른 팀 -${it.value}점`;
+      case "polyjuice": return "고른 팀과 점수 바꾸기";
       case "dementor": return `우리 팀 -${it.value}점`;
       default: return "꽝! 아무 일도 없음";
     }
@@ -573,14 +574,20 @@
     else if (m.stage === "item") {
       const k = e.item, it = C.items[k];
       const owner = m.itemTeam ?? m.team;
-      const needTarget = k === "curse" && m.target == null;
+      const needTarget = (k === "curse" || k === "polyjuice") && m.target == null;
       const others = range(N).filter((i) => i !== owner);
       const pts = itemWinPoints(m);
       const base = S.scores.slice(); if (pts) base[m.winner] = clamp0(base[m.winner] + pts);
       const bonus = pts ? `<span style="color:#0d6a33;font-weight:800">✅ ${TEAMS[m.winner].crest} ${esc(tName(m.winner))} 정답 +${pts}점</span> · ` : "";
       let body = "";
       if (needTarget) {
-        body = `<div class="rank-prompt">⚡ ${esc(tName(owner))}, 저주를 걸 팀을 고르세요!</div>${teamButtons(others, "curseTarget")}`;
+        body = `<div class="rank-prompt">${k === "polyjuice" ? `🔄 ${esc(tName(owner))}, 점수를 바꿀 팀을 고르세요!` : `⚡ ${esc(tName(owner))}, 저주를 걸 팀을 고르세요!`}</div>${teamButtons(others, "curseTarget")}`;
+      } else if (k === "polyjuice") {
+        // 폴리주스: 정답 점수(+10)를 먼저 반영한 뒤 두 팀 점수를 맞바꿈
+        const t = m.target, lab = (i) => `<span class="lbl" style="${tStyle(i)}">${TEAMS[i].crest} ${esc(tName(i))}</span>`;
+        body = hiddenMode()
+          ? `<div class="score-change hidden-change">${lab(owner)}<span>⇄</span>${lab(t)}<span>금고를 통째로 바꿨다!</span></div>`
+          : `<div class="score-change">${lab(owner)}<span>${base[owner]}</span><span class="arrow">⇄</span><span>${base[t]}</span>${lab(t)}</div>`;
       } else {
         const tgt = k === "curse" ? m.target : owner;
         const before = S.scores[tgt], after = itemResult(k, base[tgt]);
@@ -665,7 +672,7 @@
     P.innerHTML = h;
   }
 
-  function itemQuizCfg() { return Object.assign({ items: ["butterbeer", "felix", "curse", "dementor", "cloak"], timeLimit: C.quiz.timeLimit, stealTimeLimit: C.quiz.stealTimeLimit }, C.itemQuiz || {}); }
+  function itemQuizCfg() { return Object.assign({ items: ["butterbeer", "felix", "curse", "polyjuice", "dementor", "cloak"], timeLimit: C.quiz.timeLimit, stealTimeLimit: C.quiz.stealTimeLimit }, C.itemQuiz || {}); }
   function itemNeedsQuiz(k) { return itemQuizCfg().items.includes(k); }
   // 아이템 찬스 문제를 맞힌 팀이 받는 정답 점수 (아이템 효과보다 먼저 적용)
   function itemWinPoints(m) { return m.itemQuiz && m.winner != null ? (itemQuizCfg().points ?? C.quiz.points) : 0; }
@@ -679,6 +686,7 @@
     m.stage = "item";
     const k = S.envs[m.env].item;
     if (k === "dementor" || k === "curse") { sfx.dark(); flash("#1a2a4a"); }
+    else if (k === "polyjuice") { sfx.zap(); flash("#7b3fe4"); }
     else if (k === "cloak") sfx.wrong();
     else if (k === "felix") { sfx.potion(); flash("#fff3c4"); goldConfetti(false); }
     else { sfx.sparkle(); sfx.correct(); flash("#fff3c4"); }
@@ -899,9 +907,10 @@
           const tgt = k === "curse" ? m.target : owner;
           const pts = itemWinPoints(m);
           if (pts) S.scores[m.winner] = clamp0(S.scores[m.winner] + pts);   // 정답 점수 먼저
-          S.scores[tgt] = itemResult(k, S.scores[tgt]);                      // 그다음 아이템 효과
+          if (k === "polyjuice") [S.scores[owner], S.scores[m.target]] = [S.scores[m.target], S.scores[owner]];   // 점수 맞바꾸기
+          else S.scores[tgt] = itemResult(k, S.scores[tgt]);                 // 그다음 아이템 효과
           const by = m.passedFrom != null ? `🔄${tName(m.passedFrom)}→${tName(owner)} ` : owner !== m.team ? `⚡${tName(owner)} ` : "";
-          env.summary = k === "curse" ? `${by}${C.items[k].name} → ${tName(tgt)}` : `${by}${C.items[k].name}`;
+          env.summary = k === "curse" ? `${by}${C.items[k].name} → ${tName(tgt)}` : k === "polyjuice" ? `${by}폴리주스 ⇄ ${tName(m.target)}` : `${by}${C.items[k].name}`;
         }
       }
       S.picks[m.team]++;
