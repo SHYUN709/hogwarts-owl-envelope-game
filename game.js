@@ -189,7 +189,7 @@
     sfx[k] = () => {
       if (!soundOn) return;
       const a = new Audio("vendor/sounds/" + file);
-      a.volume = Math.min(1, C.soundVolume ?? 1);
+      a.volume = Math.min(1, C.soundFileVolume ?? C.soundVolume ?? 1);
       a.play().catch(synth);
     };
   });

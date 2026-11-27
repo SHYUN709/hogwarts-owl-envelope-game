@@ -72,7 +72,8 @@ window.GAME_CONFIG = {
 
   manualAdjustStep: 5,  // 점수판 +/- 버튼 한 번에 바뀌는 점수
   sound: true,          // 효과음 (9 키로 켜고 끄기)
-  soundVolume: 0.45,    // 효과음 크기 (0~1). 파일 소리와 합성음 모두에 적용
+  soundVolume: 0.45,    // 합성음 크기 (0~1)
+  soundFileVolume: 0.2, // 다운로드한 효과음 파일 크기 (0~1). 파일이 원래 커서 따로 작게 둠
 
   // 🔊 효과음 파일 (vendor/sounds/ 안, Kenney.nl CC0). 다른 소리로 바꾸려면 파일 이름만 바꾸세요.
   //    목록에서 지우거나 파일이 없으면 예전 합성음이 대신 나옵니다.
