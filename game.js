@@ -514,13 +514,14 @@
           ? `<h2 class="kind">🎁 아이템 찬스 <span class="tag-en">ITEM CHANCE</span></h2>
              <div class="sub" style="font-weight:800;color:var(--seal)">맞히면 <b>+${itemQuizCfg().points ?? C.quiz.points}점</b> + 봉투 속 아이템! 좋은 것일까, 나쁜 것일까… 🎲</div>`
           : `<h2 class="kind">${q.team ? "👥 함께 퀴즈" : "📜 퀴즈"} <span class="tag-en">${q.team ? "TEAM QUIZ" : "QUIZ"} · ${m.points}점</span></h2>`}
-        <div class="question">${esc(q.q)}</div>
+        <div class="question">${withRoll(q.q)}</div>
         ${q.hint ? `<div class="hint">${esc(q.hint)}</div>` : ""}
         ${timerHTML()}
         ${m.timeout ? `<div class="sub" style="color:var(--bad);font-weight:800;font-size:3.4vh">⏰ 시간 종료!</div>` : ""}
         <div class="actions">
           ${m.timer ? `<button class="btn ink" data-act="timer">${m.timer.running ? "⏸ 일시정지" : m.timer.left < m.timer.total ? "▶ 계속" : "⏱ 타이머 시작"} <kbd>Space</kbd></button>` : ""}
           ${stealing ? `<button class="btn ink" data-act="stealChange">↺ 스틸 팀 다시 고르기</button>` : ""}
+          ${m.roll && !stealing ? `<button class="btn ink" data-act="reroll">🎲 다시 돌리기</button>` : ""}
           ${ticketTeams.map((i) => `<button class="btn steal" data-act="useTicket" data-arg="${i}">⏳ ${TEAMS[i].crest} ${esc(tName(i))} 시간 돌리개</button>`).join("")}
           <button class="btn big bad" data-act="${stealing ? "stealWrong" : "wrong"}">✘ ${stealing ? "오답" : "오답 / 시간 초과"}</button>
           <button class="btn big ok" data-act="${stealing ? "stealRight" : "right"}">✔ 정답!</button>
@@ -530,7 +531,7 @@
       const others = range(N).filter((i) => i !== (m.ticketUser ?? m.team));
       h = `${headHTML()}
         <div class="steal-banner">⚡ 스틸 찬스!</div>
-        <div class="question" style="font-size:4.2vh">${esc(m.quiz.q)}</div>
+        <div class="question" style="font-size:4.2vh">${withRoll(m.quiz.q)}</div>
         <div class="rank-prompt" style="color:var(--steal)">👇 스틸할 팀을 누르세요 <span style="font-size:.75em">(가장 먼저 손 든 팀${m.quiz.team ? " · 같은 과제에 도전!" : ""}${m.itemQuiz ? " · 맞히면 아이템을 가져가요!" : ""})</span></div>
         ${teamButtons(others, "stealTeam")}
         <div class="actions">
@@ -541,8 +542,8 @@
       const r = m.result;
       h = `${headHTML()}
         <h2 class="kind">📜 정답 공개</h2>
-        <div class="question" style="font-size:4vh;opacity:.75">${esc(m.quiz.q)}</div>
-        <div class="answer ${String(m.quiz.a).length > 40 ? "long" : ""}">${esc(m.quiz.a)}</div>
+        <div class="question" style="font-size:4vh;opacity:.75">${withRoll(m.quiz.q)}</div>
+        <div class="answer ${String(m.quiz.a).length > 40 ? "long" : ""}">${m.quiz.a ? esc(m.quiz.a) : "사회자 판정 🎰"}</div>
         ${r.team !== null
           ? `<div class="result-line good">${r.steal ? "⚡ 스틸 성공! " : "🎉 "}${TEAMS[r.team].crest} ${esc(tName(r.team))} +${m.points}점</div>`
           : `<div class="result-line none">아쉽게도 이번 문제는 득점 없음</div>`}
@@ -555,12 +556,13 @@
       h = `${headHTML()}
         <h2 class="kind">⚔️ 미션 <span class="tag-en">MISSION · 4팀 모두 참가</span></h2>
         <h3 class="mission-title">${esc(ms.title)}</h3>
-        <div class="mission-desc">${esc(ms.desc)}</div>
+        <div class="mission-desc">${withRoll(ms.desc)}</div>
         ${ms.how ? `<div class="mission-how">${esc(ms.how)}</div>` : ""}
         <div class="sub">${C.mission.rankPoints.map((p, i) => `${i + 1}등 ${p}점`).join(" · ")} &nbsp;|&nbsp; 봉투 고른 팀이 1등하면 +${C.mission.pickerWinBonus}점 보너스</div>
         ${timerHTML()}
         <div class="actions">
           ${m.timer ? `<button class="btn ink" data-act="timer">${m.timer.running ? "⏸ 일시정지" : m.timer.left < m.timer.total ? "▶ 계속" : "⏱ 타이머 시작"} <kbd>Space</kbd></button>` : ""}
+          ${m.roll ? `<button class="btn ink" data-act="reroll">🎲 다시 돌리기</button>` : ""}
           <button class="btn big gold" data-act="toRank" data-primary>🏁 순위 입력하기</button>
         </div>`;
     }
@@ -642,7 +644,7 @@
       const it = C.items[e.item];
       h = `${headHTML()}
         <h2 class="kind">🎁 아이템 찬스 · 정답 공개</h2>
-        <div class="question" style="font-size:4vh;opacity:.75">${esc(m.quiz.q)}</div>
+        <div class="question" style="font-size:4vh;opacity:.75">${withRoll(m.quiz.q)}</div>
         <div class="answer ${String(m.quiz.a).length > 40 ? "long" : ""}">${esc(m.quiz.a)}</div>
         <div class="result-line none">💨 아무도 맞히지 못해 아이템이 사라졌어요</div>
         <div class="sub">봉투 속 아이템은… ${it.icon} <b>${esc(it.name)}</b> (${esc(itemShort(e.item))})</div>
@@ -680,6 +682,23 @@
     P.innerHTML = h;
   }
 
+  /* ---------- 🎰 초성 룰렛 ---------- */
+  const CONSONANTS = ["ㄱ", "ㄴ", "ㄷ", "ㄹ", "ㅁ", "ㅂ", "ㅅ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ", "ㄲ", "ㄸ", "ㅃ", "ㅆ", "ㅉ"];
+  const PAIR_CONSONANTS = ["ㄱ", "ㄴ", "ㄷ", "ㅁ", "ㅂ", "ㅅ", "ㅇ", "ㅈ", "ㅊ", "ㅎ"];   // 두 글자용: 너무 어려운 ㄹ·ㅋ·ㅌ·ㅍ·쌍자음 제외
+  const anyOf = (a) => a[Math.floor(Math.random() * a.length)];
+  const rollConsonant = (kind) => (kind === "pair" ? anyOf(PAIR_CONSONANTS) + anyOf(PAIR_CONSONANTS) : anyOf(CONSONANTS));
+  // 문제 글의 {초성} 자리에 룰렛 결과를 넣음
+  const withRoll = (text) => esc(text).replace("{초성}", `<span class="roulette" id="roulette">${(modal && modal.roll) || "?"}</span>`);
+  function spinRoulette() {
+    const m = modal, kind = (m.quiz || m.mission).roulette;
+    let k = 0;
+    const iv = setInterval(() => {
+      const el = $("#roulette");
+      if (!el || modal !== m) return clearInterval(iv);
+      if (++k > 16) { clearInterval(iv); el.textContent = m.roll; el.classList.add("landed"); sfx.coin(); return; }
+      el.textContent = rollConsonant(kind); synthSfx.tick();
+    }, 85);
+  }
   function itemQuizCfg() { return Object.assign({ items: ["butterbeer", "felix", "curse", "polyjuice", "timeturner", "dementor", "cloak"], timeLimit: C.quiz.timeLimit, stealTimeLimit: C.quiz.stealTimeLimit }, C.itemQuiz || {}); }
   function itemNeedsQuiz(k) { return itemQuizCfg().items.includes(k); }
   // 아이템 찬스 문제를 맞힌 팀이 받는 정답 점수 (아이템 효과보다 먼저 적용)
@@ -801,11 +820,13 @@
             m.quizNo = qn ? S.quizOrder[S.quizPtr % qn] + 1 : 0;
             m.points = m.quiz.points ?? C.quiz.points;
             m.timer = makeTimer(m.quiz.time ?? C.quiz.timeLimit);
+            if (m.quiz.roulette) m.roll = rollConsonant(m.quiz.roulette);
             m.stage = "quiz";
           } else if (env.type === "mission") {
             const mn = T.missions.length;
             m.mission = mn ? T.missions[S.missionOrder[S.missionPtr % mn]] : { title: "미션", desc: "(content.js에 미션을 넣어 주세요)" };
             m.timer = makeTimer(m.mission.time ?? C.mission.timeLimit);
+            if (m.mission.roulette) m.roll = rollConsonant(m.mission.roulette);
             m.stage = "mission";
           } else if (itemNeedsQuiz(env.item)) {
             // 🎁 아이템 찬스: 상식 문제를 맞혀야 아이템 공개·획득
@@ -822,6 +843,7 @@
             goItem(m);
           }
           renderModal();
+          if (m.roll) spinRoulette();
         }, 1300);
         break;
       }
@@ -835,6 +857,7 @@
           sfx.correct(); flash("#bff5cf");
           m.result = { team: p, steal: false }; m.stage = "quizResult"; renderModal();
           burstOn($("#modal-panel"), TEAMS[p].accent, 50); break; }
+      case "reroll": m.roll = rollConsonant((m.quiz || m.mission).roulette); renderModal(); spinRoulette(); break;
       case "useTicket":
         stopTimer();
         m.ticketUser = +arg; m.timeout = false;
@@ -982,7 +1005,7 @@
       }).join("")}</div>
       <div class="end-actions">
         ${revealStep < N
-          ? `<button class="btn big gold" data-act="openVault" data-primary>🔓 ${rank[next]}위 금고 열기 <kbd>Enter</kbd></button>`
+          ? `<button class="btn big gold" data-act="openVault" data-primary>🔓 ${N - revealStep === 2 ? "1·2위 금고 동시 오픈!" : `${rank[next]}위 금고 열기`} <kbd>Enter</kbd></button>`
           : `<button class="btn big gold" data-act="toPodium" data-primary>🏆 시상식 보기 <kbd>Enter</kbd></button>`}
         <button class="btn ghost" data-act="toBoard">게임판 보기</button>
         <button class="btn ghost" data-act="undo">↶ 되돌리기</button>
@@ -992,20 +1015,25 @@
   function openNextVault() {
     if (revealStep >= N || vaultBusy) return;
     vaultBusy = true;
-    const ti = standings().idx.slice().reverse()[revealStep];
+    // 마지막 두 금고(1·2위)는 동시에 — 하나만 남기면 1등이 들통나니까
+    const order = standings().idx.slice().reverse();
+    const opening = order.slice(revealStep, N - revealStep === 2 ? N : revealStep + 1);
     const btn = document.querySelector('[data-act="openVault"]'); if (btn) btn.disabled = true;
-    const card = document.querySelector(`.vault-card[data-team="${ti}"]`); if (card) card.classList.add("shaking");
-    sfx.drum();
+    opening.forEach((ti) => document.querySelector(`.vault-card[data-team="${ti}"]`)?.classList.add("shaking"));
+    sfx.drum(); if (opening.length > 1) setTimeout(sfx.drum, 900);
     setTimeout(() => {
       vaultBusy = false;
-      revealStep++;
+      revealStep += opening.length;
       renderVaultReveal();
       sfx.vault();
-      const amt = $("#va-" + ti); if (amt) countUp(amt, 0, S.scores[ti]);
-      const c2 = document.querySelector(`.vault-card[data-team="${ti}"]`);
-      if (c2) { burstOn(c2, "#ffd76a", 46); for (let k = 0; k < 5; k++) setTimeout(sfx.coin, 300 + k * 140); }
+      opening.forEach((ti) => {
+        const amt = $("#va-" + ti); if (amt) countUp(amt, 0, S.scores[ti]);
+        const c2 = document.querySelector(`.vault-card[data-team="${ti}"]`);
+        if (c2) burstOn(c2, "#ffd76a", 46);
+      });
+      for (let k = 0; k < 5; k++) setTimeout(sfx.coin, 300 + k * 140);
       if (revealStep === N) setTimeout(() => { sfx.fanfare(); goldConfetti(true); }, 900);
-    }, 1000);
+    }, opening.length > 1 ? 1900 : 1000);
   }
 
   function renderEnd() {

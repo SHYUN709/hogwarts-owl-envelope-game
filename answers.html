@@ -65,16 +65,16 @@
       const quizzes = T.quizzes.map((q, i) => `
         <div class="card ${q.team ? "team" : ""}" id="q${i + 1}">
           <div class="no">Q${i + 1}</div>
-          <div class="q">${esc(q.q)}<span class="meta kind">${q.team ? "👥 함께" : "⚡ 퀴즈"}</span><span class="meta">${timeOf(q)} · ${q.points ?? C.quiz.points}점</span>${q.must ? `<span class="meta" style="background:#ffe1a8;color:#7a4a00">★ 매 판 출제</span>` : ""}</div>
+          <div class="q">${esc(q.q).replace("{초성}", "🎰(룰렛)")}<span class="meta kind">${q.team ? "👥 함께" : "⚡ 퀴즈"}</span><span class="meta">${timeOf(q)} · ${q.points ?? C.quiz.points}점</span>${q.must ? `<span class="meta" style="background:#ffe1a8;color:#7a4a00">★ 매 판 출제</span>` : ""}</div>
           ${q.hint ? `<div class="hint">${esc(q.hint)}</div>` : "<div></div>"}
-          <div class="a">${esc(q.a)}</div>
+          <div class="a">${q.a ? esc(q.a) : "🎰 룰렛 문제 · 정답 없음 — 사회자 판정"}</div>
         </div>`).join("");
 
       const missions = T.missions.map((m, i) => `
         <div class="card mission" id="m${i + 1}">
           <div class="no">M${i + 1}</div>
           <div class="q">${esc(m.title)}<span class="meta">${(m.time ?? C.mission.timeLimit) > 0 ? (m.time ?? C.mission.timeLimit) + "초" : "타이머 없음"}</span>${m.must ? `<span class="meta" style="background:#ffe1a8;color:#7a4a00">★ 매 판 출제</span>` : ""}</div>
-          <div class="hint">${esc(m.desc)}<br>${esc(m.how || "")}</div>
+          <div class="hint">${esc(m.desc).replace("{초성}", "🎰(룰렛)")}<br>${esc(m.how || "")}</div>
         </div>`).join("");
 
       const itemQs = (T.itemQuizzes || []).map((q, i) => `
