@@ -14,5 +14,6 @@
 | 아이콘: cloak | Lucasms | CC BY 3.0 |
 | 폰트: Cinzel Decorative, Cinzel, EB Garamond, Gowun Batang | 각 폰트 제작자 (Google Fonts) | SIL Open Font License (`vendor/fonts/OFL-*.txt`) |
 | canvas-confetti 1.9.3 | Kiril Vatev | ISC (`vendor/LICENSE-canvas-confetti.txt`) |
+| 효과음: Interface Sounds, Music Jingles (`vendor/sounds/`) | Kenney (kenney.nl) | CC0 (`vendor/sounds/License-*.txt`) |
 
 아이콘 출처: [game-icons.net](https://game-icons.net). 원본 SVG는 `vendor/icons/`에 있고, 게임은 거기서 모양만 뽑은 `vendor/icons.js`를 씁니다. 색(금색 그라데이션)은 게임에서 입힌 것입니다.

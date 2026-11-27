@@ -180,6 +180,17 @@
     drum: () => range(10).forEach((i) => tone(110 + (i % 2) * 8, 0.09, "triangle", 0.12, i * 0.09)),
     vault: () => { tone(220, 0.15, "square", 0.08); tone(160, 0.35, "sawtooth", 0.07, 0.12); [784, 988, 1319].forEach((f, i) => tone(f, 0.4, "triangle", 0.12, 0.45 + i * 0.1)); },
   };
+  // config.sounds 에 있는 효과음은 파일(vendor/sounds)로 재생, 파일을 못 읽으면 위 합성음으로 대체
+  Object.entries(C.sounds || {}).forEach(([k, file]) => {
+    const synth = sfx[k];
+    if (!synth || !file) return;
+    sfx[k] = () => {
+      if (!soundOn) return;
+      const a = new Audio("vendor/sounds/" + file);
+      a.volume = 0.85;
+      a.play().catch(synth);
+    };
+  });
 
   /* ====================== 연출 ====================== */
   function burst(x, y, color = "#e8c46a", n = 28) {
@@ -285,7 +296,7 @@
       </div>
       <div class="title-hint">
         <kbd>1</kbd> 규칙 &nbsp; <kbd>2</kbd> 아이템표 &nbsp; <kbd>0</kbd> 전체화면 &nbsp; <kbd>9</kbd> 소리 켜기/끄기 &nbsp; <kbd>Ctrl</kbd>+<kbd>Z</kbd> 되돌리기
-        <div class="credits">Icons: Lorc, Delapouite, Caro Asercion, DarkZaitzev, Lucasms — game-icons.net (CC BY 3.0) · Fonts: SIL OFL · canvas-confetti (ISC)</div>
+        <div class="credits">Icons: Lorc, Delapouite, Caro Asercion, DarkZaitzev, Lucasms — game-icons.net (CC BY 3.0) · Fonts: SIL OFL · canvas-confetti (ISC) · Sounds: Kenney.nl (CC0)</div>
       </div>`;
   }
 

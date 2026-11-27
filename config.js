@@ -71,5 +71,20 @@ window.GAME_CONFIG = {
   questionsInOrder: false,
 
   manualAdjustStep: 5,  // 점수판 +/- 버튼 한 번에 바뀌는 점수
-  sound: true,          // 효과음 (M 키로 켜고 끄기)
+  sound: true,          // 효과음 (9 키로 켜고 끄기)
+
+  // 🔊 효과음 파일 (vendor/sounds/ 안, Kenney.nl CC0). 다른 소리로 바꾸려면 파일 이름만 바꾸세요.
+  //    목록에서 지우거나 파일이 없으면 예전 합성음이 대신 나옵니다.
+  sounds: {
+    pick: "maximize_008.ogg",       // 봉투 고르기 · 팀 선택
+    open: "jingles_PIZZI07.ogg",    // 봉투 열기
+    tick: "tick_002.ogg",           // 타이머 마지막 5초
+    correct: "confirmation_002.ogg",// 정답
+    wrong: "error_006.ogg",         // 오답
+    buzz: "error_005.ogg",          // 시간 종료
+    steal: "jingles_HIT15.ogg",     // 스틸 찬스
+    coin: "glass_001.ogg",          // 금화 짤랑
+    vault: "jingles_STEEL02.ogg",   // 금고 열기
+    fanfare: "jingles_NES00.ogg",   // 우승 · 순서 추첨
+  },
 };
