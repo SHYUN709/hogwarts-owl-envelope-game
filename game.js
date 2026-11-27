@@ -175,6 +175,7 @@
     dark: () => { tone(220, 1.2, "sawtooth", 0.1, 0, 55); tone(233, 1.2, "sine", 0.1, 0, 60); },
     sparkle: () => range(6).forEach((i) => tone(1500 + Math.random() * 1500, 0.15, "sine", 0.05, i * 0.06)),
     zap: () => { tone(1800, 0.3, "sawtooth", 0.1, 0, 200); tone(90, 0.4, "square", 0.08, 0.15); },
+    open: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.35, "sine", 0.14, i * 0.09)),
     potion: () => { sfx.sparkle(); sfx.correct(); },
     coin: () => { tone(1975, 0.07, "square", 0.045); tone(2637, 0.18, "sine", 0.07, 0.05); },
     drum: () => range(10).forEach((i) => tone(110 + (i % 2) * 8, 0.09, "triangle", 0.12, i * 0.09)),
@@ -772,6 +773,7 @@
         const env = S.envs[m.env];
         const big = $("#big-env"); big.classList.remove("hover-bob"); big.classList.add("opening");
         big.querySelector(".note").textContent = env.type === "item" ? "🎁" : TYPE_ICON[env.type];
+        sfx.open();
         setTimeout(() => {
           if (modal !== m) return;
           burstOn(big, "#e8c46a", 40);
