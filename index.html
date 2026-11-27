@@ -4,9 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>호그와트 부엉이 편지</title>
-  <!-- 인터넷이 없어도 동작합니다 (글꼴만 기본 글꼴로 바뀜) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;800&family=EB+Garamond:wght@600;700;800&family=Nanum+Myeongjo:wght@700;800&family=Gowun+Batang:wght@700&display=swap">
+  <!-- 폰트·라이브러리·아이콘 모두 vendor/ 에 들어 있어 인터넷 없이 동작합니다 -->
+  <link rel="stylesheet" href="vendor/fonts.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -26,6 +25,20 @@
   <div id="toast" aria-live="polite"></div>
   <div id="fx" aria-hidden="true"></div>
 
+  <!-- SVG 아이콘에 입히는 금색 그라데이션 (어두운 배경용 gold, 양피지 배경용 bronze) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="gi-gold" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fff3c4"/><stop offset=".45" stop-color="#e8c46a"/><stop offset="1" stop-color="#a87a22"/>
+      </linearGradient>
+      <linearGradient id="gi-bronze" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#b8892f"/><stop offset=".55" stop-color="#7a5414"/><stop offset="1" stop-color="#3e2a08"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <script src="vendor/confetti.browser.js"></script>
+  <script src="vendor/icons.js"></script>
   <script src="config.js"></script>
   <script src="content.js"></script>
   <script src="game.js"></script>

@@ -18,6 +18,11 @@
   const range = (n) => Array.from({ length: n }, (_, i) => i);
   const tStyle = (i) => `--color:${TEAMS[i].color};--accent:${TEAMS[i].accent}`;
   const tName = (i) => TEAMS[i].name;
+  // game-icons.net SVG (vendor/icons.js). 파일이 없으면 이모지로 대체
+  const gi = (key, fallback) => window.GAME_ICONS && GAME_ICONS[key]
+    ? `<svg class="gi" viewBox="0 0 512 512" aria-hidden="true"><path d="${GAME_ICONS[key]}"/></svg>` : fallback;
+  const crest = (i) => gi(TEAMS[i].id, TEAMS[i].crest);
+  const itemIcon = (k) => gi(k, C.items[k].icon);
   // 받침 있으면 a(이/은), 없으면 b(가/는)
   const josa = (w, a, b) => { const c = String(w).charCodeAt(String(w).length - 1); return c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 ? a : b; };
 
@@ -192,6 +197,16 @@
       setTimeout(() => s.remove(), 2000);
     }
   }
+  // canvas-confetti (vendor/confetti.browser.js) 금색 꽃가루. 파일이 없으면 조용히 건너뜀
+  function goldConfetti(big) {
+    if (!window.confetti) return;
+    const o = { colors: ["#ffd75e", "#e8c46a", "#fff3c4", "#b8892f"], zIndex: 120, disableForReducedMotion: true };
+    confetti({ ...o, particleCount: big ? 160 : 90, spread: big ? 100 : 70, origin: { y: 0.6 } });
+    if (big) setTimeout(() => {
+      confetti({ ...o, particleCount: 80, angle: 60, spread: 60, origin: { x: 0, y: 0.7 } });
+      confetti({ ...o, particleCount: 80, angle: 120, spread: 60, origin: { x: 1, y: 0.7 } });
+    }, 300);
+  }
   function burstOn(el, color, n) {
     if (!el) return;
     const r = el.getBoundingClientRect();
@@ -257,7 +272,7 @@
     const inProgress = !!(S && (S.phase !== "draw" || S.order));
     const openedCount = S ? S.envs.filter((e) => e.openedBy !== null).length : 0;
     $("#screen-title").innerHTML = `
-      <div class="crest-row">${TEAMS.map((t) => `<span>${t.crest}</span>`).join("")}</div>
+      <div class="crest-row">${TEAMS.map((t) => `<span>${crest(TEAMS.indexOf(t))}</span>`).join("")}</div>
       <div class="title-en">HOGWARTS · OWL POST</div>
       <h1 class="title-main">${esc(C.title)}</h1>
       <div class="title-sub">${esc(C.subtitle)}</div>
@@ -270,6 +285,7 @@
       </div>
       <div class="title-hint">
         <kbd>1</kbd> 규칙 &nbsp; <kbd>2</kbd> 아이템표 &nbsp; <kbd>0</kbd> 전체화면 &nbsp; <kbd>9</kbd> 소리 켜기/끄기 &nbsp; <kbd>Ctrl</kbd>+<kbd>Z</kbd> 되돌리기
+        <div class="credits">Icons: Lorc, Delapouite, Caro Asercion, DarkZaitzev, Lucasms — game-icons.net (CC BY 3.0) · Fonts: SIL OFL · canvas-confetti (ISC)</div>
       </div>`;
   }
 
@@ -282,7 +298,7 @@
         ${ordered.map((i) => `
           <div class="draw-card ${animating ? "spin" : S.order ? "pop" : ""}" style="${tStyle(i)}" data-team="${i}">
             ${S.order && !animating ? `<div class="order-no">${S.order.indexOf(i) + 1}</div>` : `<div class="order-no" style="opacity:${animating ? 1 : 0}">?</div>`}
-            <div class="crest">${TEAMS[i].crest}</div>
+            <div class="crest">${crest(i)}</div>
             <div class="tname">${esc(TEAMS[i].name)}</div>
           </div>`).join("")}
       </div>
@@ -330,7 +346,7 @@
     $("#scoreboard").innerHTML = TEAMS.map((t, i) => `
       <div class="team-card ${i === cur ? "current" : over ? "" : "dim"}" style="${tStyle(i)}" data-team="${i}">
         <div class="order-tag">${S.order ? S.order.indexOf(i) + 1 + "번" : ""}</div>
-        <div class="crest">${t.crest}</div>
+        <div class="crest">${crest(i)}</div>
         <div class="info">
           <div class="tname">${esc(t.name)}</div>
           <div class="pips">${range(ROUNDS).map((k) => `<span class="pip ${k < S.picks[i] ? "on" : ""}"></span>`).join("")}</div>
@@ -371,7 +387,7 @@
     requestAnimationFrame(step);
   }
 
-  function envIcon(e) { return e.type === "item" ? C.items[e.item].icon : TYPE_ICON[e.type]; }
+  function envIcon(e) { return e.type === "item" ? itemIcon(e.item) : TYPE_ICON[e.type]; }
 
   function renderGrid() {
     const over = S.turn >= TOTAL;
@@ -444,7 +460,7 @@
   function teamButtons(list, act, extra = () => "") {
     return `<div class="team-pick">${list.map((i) => `
       <button class="team-btn ${extra(i).includes("picked") ? "picked" : ""}" style="${tStyle(i)}" data-act="${act}" data-arg="${i}" aria-label="${esc(tName(i))} ${S.scores[i]}점">
-        <span class="crest">${TEAMS[i].crest}</span><span>${esc(tName(i))}</span>
+        <span class="crest">${crest(i)}</span><span>${esc(tName(i))}</span>
         <span class="s">${S.scores[i]}점</span>${extra(i).replace("picked", "")}
       </button>`).join("")}</div>`;
   }
@@ -556,8 +572,8 @@
         const before = S.scores[tgt], after = itemResult(k, base[tgt]);
         const lbl = `<span class="lbl" style="${tStyle(tgt)}">${TEAMS[tgt].crest} ${esc(tName(tgt))}</span>`;
         const hiddenLine = {
-          butterbeer: `🪙 금고에 <b>${C.items[k].value} 갈레온</b> 입금!`,
-          felix: `🪙🪙 금고에 <b>${C.items[k].value} 갈레온</b> 대박 입금!`,
+          butterbeer: `<span class="coin"></span> 금고에 <b>${C.items[k].value} 갈레온</b> 입금!`,   // 🪙 이모지는 Windows 10에서 네모로 깨짐
+          felix: `<span class="coin"></span><span class="coin"></span> 금고에 <b>${C.items[k].value} 갈레온</b> 대박 입금!`,
           curse: `💸 금고에서 <b>${C.items[k].value} 갈레온</b> 증발!`,
           dementor: `🕳️ 금고가 텅 비었다…`,
         }[k];
@@ -570,7 +586,7 @@
       }
       h = `${headHTML()}
         <h2 class="kind">🎁 아이템 <span class="tag-en">ITEM</span></h2>
-        <div class="item-icon">${it.icon}</div>
+        <div class="item-icon">${itemIcon(k)}</div>
         <h3 class="item-name">${esc(it.name)}</h3>
         <div class="item-effect">${esc(itemShort(k))}</div>
         ${m.itemQuiz
@@ -650,7 +666,7 @@
     const k = S.envs[m.env].item;
     if (k === "dementor" || k === "curse") { sfx.dark(); flash("#1a2a4a"); }
     else if (k === "cloak") sfx.wrong();
-    else { sfx.sparkle(); sfx.correct(); flash("#fff3c4"); }
+    else { sfx.sparkle(); sfx.correct(); flash("#fff3c4"); if (k === "felix") goldConfetti(false); }
   }
 
   function itemResult(k, v) {
@@ -914,7 +930,7 @@
       <div class="vaults">${TEAMS.map((t, i) => {
         const o = opened.has(i);
         return `<div class="vault-card ${o ? "open" : ""}" style="${tStyle(i)}" data-team="${i}">
-          <div class="crest">${t.crest}</div>
+          <div class="crest">${crest(i)}</div>
           <div class="tname">${esc(t.name)}</div>
           <div class="big-vault">
             ${o ? `<div class="vault-gold">${"<span class=\"coin\"></span>".repeat(Math.min(15, Math.max(1, Math.round(S.scores[i] / 8))))}</div>`
@@ -949,7 +965,7 @@
       const amt = $("#va-" + ti); if (amt) countUp(amt, 0, S.scores[ti]);
       const c2 = document.querySelector(`.vault-card[data-team="${ti}"]`);
       if (c2) { burstOn(c2, "#ffd76a", 46); for (let k = 0; k < 5; k++) setTimeout(sfx.coin, 300 + k * 140); }
-      if (revealStep === N) setTimeout(() => sfx.fanfare(), 900);
+      if (revealStep === N) setTimeout(() => { sfx.fanfare(); goldConfetti(true); }, 900);
     }, 1000);
   }
 
@@ -974,7 +990,7 @@
             ${ti === winner && !isTie ? `<div class="crown">👑</div>` : ""}
             <div class="rank">${r}${["ST", "ND", "RD"][r - 1] || "TH"}</div>
             <div class="stand" style="height:${h}vh">
-              <div class="crest">${TEAMS[ti].crest}</div>
+              <div class="crest">${crest(ti)}</div>
               <div class="tname">${esc(tName(ti))}</div>
               <div class="pts">${S.scores[ti]}</div>
             </div></div>`;
@@ -987,7 +1003,7 @@
         <button class="btn ghost" data-act="new">새 게임</button>
       </div>`;
     if (!isTie) {
-      sfx.fanfare();
+      sfx.fanfare(); goldConfetti(true);
       setTimeout(() => { const w = document.querySelector(".podium .winner .stand"); for (let k = 0; k < 4; k++) setTimeout(() => burstOn(w, k % 2 ? "#fff3c4" : TEAMS[winner].accent, 40), k * 350); }, 200);
     }
   }
@@ -1064,7 +1080,7 @@
       </div>`,
       `<div class="slide parchment">
         <h2>🎁 아이템 효과표 <small>MAGIC ITEMS</small></h2>
-        <table class="items">${ITEM_KEYS.map((k) => `<tr><td>${C.items[k].icon}</td><td>${esc(C.items[k].name)}</td><td>${esc(itemShort(k))}</td></tr>`).join("")}</table>
+        <table class="items">${ITEM_KEYS.map((k) => `<tr><td>${itemIcon(k)}</td><td>${esc(C.items[k].name)}</td><td>${esc(itemShort(k))}</td></tr>`).join("")}</table>
         <div class="foot">
           ${ITEM_KEYS.every(itemNeedsQuiz)
             ? `<span>🎯 <b>상식 문제를 맞힌 팀</b>은 <b>+${itemQuizCfg().points ?? C.quiz.points}점</b>과 봉투 속 아이템을 받아요 — 복불복! 🎲 (틀리면 스틸)</span>

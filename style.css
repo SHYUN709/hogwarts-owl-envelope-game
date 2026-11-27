@@ -98,6 +98,7 @@ kbd {
 .title-sub { font-size: 3.4vh; color: var(--parchment); opacity: .9; }
 .title-actions { display: flex; gap: 2vw; margin-top: 3vh; flex-wrap: wrap; justify-content: center; }
 .title-hint { position: absolute; bottom: 3vh; font-family: var(--font-ui); font-size: 1.8vh; opacity: .55; }
+.title-hint .credits { margin-top: .8vh; font-size: 1.3vh; opacity: .8; }
 .warn { font-family: var(--font-ui); background: #b8322a; color: #fff; padding: .6em 1em; border-radius: 10px; font-size: 2vh; max-width: 70vw; }
 
 /* ---------- 순서 추첨 ---------- */
@@ -547,3 +548,14 @@ body.hide-scores.peek .team-btn .s { visibility: visible; }
 .vault-unit { font-size: 2.6vh; color: var(--gold-soft); }
 .vault-rank { font-family: var(--font-en); font-weight: 900; font-size: 3.4vh; color: var(--gold); }
 .vault-card.shaking .big-vault { animation: vaultShake .25s ease-in-out infinite; }
+
+/* game-icons.net SVG 아이콘: 금색 + 어두운 테두리(노란 후플푸프 카드 위에서도 또렷하게) */
+.gi {
+  width: 1em; height: 1em; vertical-align: -.12em;
+  fill: url(#gi-gold); stroke: #2a1a04; stroke-width: 14px; paint-order: stroke; stroke-linejoin: round;
+  filter: drop-shadow(0 .05em .08em #000a);
+}
+/* 양피지 위(아이템 화면·규칙표)는 진한 청동색 */
+.parchment .gi, .slide .gi { fill: url(#gi-bronze); stroke: none; filter: drop-shadow(0 .03em .04em #0006); }
+.parchment .team-btn .gi { fill: url(#gi-gold); stroke: #2a1a04; stroke-width: 14px; }
+.crest-row .gi { width: 1.1em; height: 1.1em; }

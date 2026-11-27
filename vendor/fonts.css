@@ -1,0 +1,6 @@
+/* 오프라인용 로컬 폰트 (SIL Open Font License — vendor/fonts/OFL-*.txt) */
+@font-face { font-family: "Cinzel Decorative"; src: url("fonts/CinzelDecorative-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Cinzel Decorative"; src: url("fonts/CinzelDecorative-Black.ttf") format("truetype"); font-weight: 900; font-display: swap; }
+@font-face { font-family: "Cinzel"; src: url("fonts/Cinzel-wght.ttf") format("truetype"); font-weight: 400 900; font-display: swap; }
+@font-face { font-family: "EB Garamond"; src: url("fonts/EBGaramond-wght.ttf") format("truetype"); font-weight: 400 800; font-display: swap; }
+@font-face { font-family: "Gowun Batang"; src: url("fonts/GowunBatang-Bold.ttf") format("truetype"); font-weight: 400 900; font-display: swap; }
