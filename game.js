@@ -159,7 +159,7 @@
     o.type = type; o.frequency.setValueAtTime(f, t);
     if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(vol * (C.soundVolume ?? 1), t + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.connect(g).connect(a.destination);
     o.start(t); o.stop(t + dur + 0.05);
@@ -176,6 +176,7 @@
     dark: () => { tone(220, 1.2, "sawtooth", 0.1, 0, 55); tone(233, 1.2, "sine", 0.1, 0, 60); },
     sparkle: () => range(6).forEach((i) => tone(1500 + Math.random() * 1500, 0.15, "sine", 0.05, i * 0.06)),
     zap: () => { tone(1800, 0.3, "sawtooth", 0.1, 0, 200); tone(90, 0.4, "square", 0.08, 0.15); },
+    potion: () => { sfx.sparkle(); sfx.correct(); },
     coin: () => { tone(1975, 0.07, "square", 0.045); tone(2637, 0.18, "sine", 0.07, 0.05); },
     drum: () => range(10).forEach((i) => tone(110 + (i % 2) * 8, 0.09, "triangle", 0.12, i * 0.09)),
     vault: () => { tone(220, 0.15, "square", 0.08); tone(160, 0.35, "sawtooth", 0.07, 0.12); [784, 988, 1319].forEach((f, i) => tone(f, 0.4, "triangle", 0.12, 0.45 + i * 0.1)); },
@@ -187,7 +188,7 @@
     sfx[k] = () => {
       if (!soundOn) return;
       const a = new Audio("vendor/sounds/" + file);
-      a.volume = 0.85;
+      a.volume = Math.min(1, C.soundVolume ?? 1);
       a.play().catch(synth);
     };
   });
@@ -264,7 +265,7 @@
         if (d > 0) { sfx.coin(); card.classList.remove("vault-bump"); void card.offsetWidth; card.classList.add("vault-bump"); }
       };
     }
-    if (d < 0) { sfx.wrong(); card.classList.remove("vault-shake"); void card.offsetWidth; card.classList.add("vault-shake"); }
+    if (d < 0) { sfx.dark(); card.classList.remove("vault-shake"); void card.offsetWidth; card.classList.add("vault-shake"); }
   }
 
   /* ====================== 화면 전환 ====================== */
@@ -677,7 +678,8 @@
     const k = S.envs[m.env].item;
     if (k === "dementor" || k === "curse") { sfx.dark(); flash("#1a2a4a"); }
     else if (k === "cloak") sfx.wrong();
-    else { sfx.sparkle(); sfx.correct(); flash("#fff3c4"); if (k === "felix") goldConfetti(false); }
+    else if (k === "felix") { sfx.potion(); flash("#fff3c4"); goldConfetti(false); }
+    else { sfx.sparkle(); sfx.correct(); flash("#fff3c4"); }
   }
 
   function itemResult(k, v) {
