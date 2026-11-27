@@ -43,7 +43,7 @@
       case "butterbeer": return `+${it.value}점`;
       case "felix": return `+${it.value}점 대박!`;
       case "curse": return `다른 팀 -${it.value}점`;
-      case "dementor": return "우리 팀 0점";
+      case "dementor": return `우리 팀 -${it.value}점`;
       default: return "꽝! 아무 일도 없음";
     }
   }
@@ -575,7 +575,7 @@
           butterbeer: `<span class="coin"></span> 금고에 <b>${C.items[k].value} 갈레온</b> 입금!`,   // 🪙 이모지는 Windows 10에서 네모로 깨짐
           felix: `<span class="coin"></span><span class="coin"></span> 금고에 <b>${C.items[k].value} 갈레온</b> 대박 입금!`,
           curse: `💸 금고에서 <b>${C.items[k].value} 갈레온</b> 증발!`,
-          dementor: `🕳️ 금고가 텅 비었다…`,
+          dementor: `🕳️ 디멘터가 금고에서 <b>${C.items[k].value} 갈레온</b>을 빨아갔다…`,
         }[k];
         body = k === "cloak"
           ? `<div class="result-line none">아이템 효과는 없어요… 🌫️</div>`
@@ -675,7 +675,7 @@
       case "butterbeer": return clamp0(v + it.value);
       case "felix": return clamp0(v + it.value);
       case "curse": return clamp0(v - it.value);
-      case "dementor": return 0;
+      case "dementor": return clamp0(v - it.value);
       default: return v;
     }
   }

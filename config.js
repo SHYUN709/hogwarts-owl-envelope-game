@@ -43,7 +43,7 @@ window.GAME_CONFIG = {
     butterbeer: { name: "버터맥주",        icon: "🍺", count: 4, value: 20, desc: "따끈한 버터맥주 한 잔! 점수를 얻는다." },        // +value점
     felix:      { name: "펠릭스 펠리시스", icon: "🧪", count: 2, value: 50, desc: "행운의 물약! 엄청난 행운이 쏟아진다." },          // +value점 (대박 아이템)
     curse:      { name: "저주 주문",       icon: "⚡", count: 3, value: 20, desc: "공격할 팀을 직접 골라 점수를 깎는다." },        // 고른 팀 -value점
-    dementor:   { name: "디멘터",          icon: "👻", count: 2,            desc: "디멘터가 행복을 빨아들였다… 점수가 0점이 된다." }, // 우리 팀 0점
+    dementor:   { name: "디멘터",          icon: "👻", count: 2, value: 40, desc: "디멘터가 행복을 빨아들였다… 점수를 잃는다." },     // 우리 팀 -value점
     cloak:      { name: "투명 망토",       icon: "🧥", count: 1,            desc: "망토 속엔 아무것도 없었다." },                    // 꽝
   },
 
