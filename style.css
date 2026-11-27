@@ -559,3 +559,12 @@ body.hide-scores.peek .team-btn .s { visibility: visible; }
 .parchment .gi, .slide .gi { fill: url(#gi-bronze); stroke: none; filter: drop-shadow(0 .03em .04em #0006); }
 .parchment .team-btn .gi { fill: url(#gi-gold); stroke: #2a1a04; stroke-width: 14px; }
 .crest-row .gi { width: 1.1em; height: 1.1em; }
+
+/* 규칙 1번 슬라이드: 사회자 재량 강조 띠 */
+.slide .host-note {
+  margin-top: auto; align-self: center; text-align: center;
+  font-size: 4vh; font-weight: 800; color: #2a1c0e; padding: .45em 1.2em; border-radius: 999px;
+  background: linear-gradient(90deg, #e8c46a, #fff3c4, #e8c46a); background-size: 200% 100%;
+  box-shadow: 0 0 0 3px #b8892f, 0 .6vh 1.6vh #0004; animation: shimmer 3s linear infinite;
+}
+.slide .host-note b { color: var(--seal); }

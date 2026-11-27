@@ -1068,6 +1068,7 @@
           ${C.hiddenScores !== false ? `<li><span class="b">🔐</span><span>점수는 <em>잠긴 금고</em>에 비밀!${tallyRound() ? ` ${tallyRound()}바퀴 뒤 <em>⏳ 모래시계</em>로 살짝 공개` : ""}</span></li>` : ""}
           <li><span class="b">🏆</span><span>마지막에 금고 오픈! 가장 많이 모은 팀 우승 · 동점이면 <em>결승 문제</em></span></li>
         </ul>
+        <div class="host-note">👑 사회자 재량으로 <b>가산점·감점</b> 가능! <b>사회자에게 잘 보이는 것은 필수!!</b> 😎</div>
       </div>`,
       `<div class="slide parchment">
         <h2>📜 퀴즈 & ⚔️ 미션 <small>QUIZ & MISSION</small></h2>
