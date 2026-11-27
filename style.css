@@ -383,9 +383,9 @@ kbd {
 .slide .box h3 { margin: 0 0 2vh; font-size: 5vh; }
 .slide .box li { font-size: 3.4vh; }
 .slide .steal-note { background: #5a28b8; color: #fff; border-radius: 14px; padding: 1.2vh 1.2vw; font-size: 3vh; line-height: 1.35; margin-top: 2vh; }
-.slide table.items { width: 100%; border-collapse: separate; border-spacing: 0 1vh; }
-.slide table.items td { font-size: 4.2vh; padding: .3vh 1.4vw; line-height: 1.2; background: #ffffff66; }
-.slide table.items td:first-child { border-radius: 14px 0 0 14px; font-size: 5.4vh; width: 1%; text-align: center; }
+.slide table.items { width: 100%; border-collapse: separate; border-spacing: 0 .6vh; }
+.slide table.items td { font-size: 3.9vh; padding: .3vh 1.4vw; line-height: 1.2; background: #ffffff66; }
+.slide table.items td:first-child { border-radius: 14px 0 0 14px; font-size: 5vh; width: 1%; text-align: center; }
 .slide table.items td:last-child { border-radius: 0 14px 14px 0; color: var(--seal); font-weight: 800; text-align: right; white-space: nowrap; }
 .slide .foot { margin-top: auto; font-size: 3.2vh; color: var(--ink-soft); display: flex; gap: 2vw; justify-content: center; flex-wrap: wrap; }
 .slide-nav { position: absolute; left: 0; right: 0; bottom: 2.2vh; display: flex; justify-content: center; align-items: center; gap: 1.5vw; font-family: var(--font-ui); font-size: 2vh; color: var(--ink-soft); }
@@ -568,3 +568,18 @@ body.hide-scores.peek .team-btn .s { visibility: visible; }
   box-shadow: 0 0 0 3px #b8892f, 0 .6vh 1.6vh #0004; animation: shimmer 3s linear infinite;
 }
 .slide .host-note b { color: var(--seal); }
+
+/* ⏳ 시간 돌리개 보유 표시 (점수판) */
+.team-card .ticket-tag {
+  position: absolute; left: .6vw; bottom: .6vh; font-family: var(--font-ui); font-weight: 800; font-size: 2vh;
+  background: #7b3fe4; color: #fff; padding: .1em .55em; border-radius: 999px; box-shadow: 0 0 1vh #b48cff;
+}
+
+/* ⏳ 현황 보기 버튼 (3바퀴 이후 게임판 아래) */
+#statusbar .tally-btn {
+  margin-left: .8vw; font-family: var(--font-ko); font-size: 2.2vh; font-weight: 800; cursor: pointer;
+  color: #2a1c0e; background: linear-gradient(#f1d27e, #b8892f); border: 2px solid #fff3c4; border-radius: 999px; padding: .1em .9em;
+}
+#statusbar .tally-btn kbd { font-size: .8em; }
+
+.slide .foot { font-size: 3vh; }

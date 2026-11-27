@@ -9,7 +9,7 @@
   const TOTAL = LETTERS.length;
   const ROUNDS = Math.round(TOTAL / N);
   const SAVE_KEY = "hp-owl-envelope-game-v1";
-  const ITEM_KEYS = ["butterbeer", "felix", "curse", "polyjuice", "dementor", "cloak"];
+  const ITEM_KEYS = ["butterbeer", "felix", "curse", "polyjuice", "timeturner", "dementor", "cloak"];
   const TYPE_ICON = { quiz: "📜", mission: "⚔️" };
 
   const $ = (s) => document.querySelector(s);
@@ -44,6 +44,7 @@
       case "felix": return `+${it.value}점 대박!`;
       case "curse": return `다른 팀 -${it.value}점`;
       case "polyjuice": return "고른 팀과 점수 바꾸기";
+      case "timeturner": return "보관 → 다른 팀 문제 먼저 답하기";
       case "dementor": return `우리 팀 -${it.value}점`;
       default: return "꽝! 아무 일도 없음";
     }
@@ -106,6 +107,7 @@
       itemQuizPtr: 0,
       missionPtr: 0,
       tbPtr: 0,
+      tickets: range(N).map(() => 0),   // ⏳ 시간 돌리개 보유 개수
       tieWinner: null,
       log: [],
     };
@@ -360,6 +362,7 @@
     $("#scoreboard").innerHTML = TEAMS.map((t, i) => `
       <div class="team-card ${i === cur ? "current" : over ? "" : "dim"}" style="${tStyle(i)}" data-team="${i}">
         <div class="order-tag">${S.order ? S.order.indexOf(i) + 1 + "번" : ""}</div>
+        ${S.tickets && S.tickets[i] ? `<div class="ticket-tag" title="시간 돌리개 보유">⏳${S.tickets[i] > 1 ? "×" + S.tickets[i] : ""}</div>` : ""}
         <div class="crest">${crest(i)}</div>
         <div class="info">
           <div class="tname">${esc(t.name)}</div>
@@ -423,11 +426,10 @@
     const left = S.envs.filter((e) => e.openedBy === null).length;
     const cur = over ? -1 : curTeam();
     $("#statusbar").innerHTML = `
-      <div class="round">${over ? "🏁 모든 봉투 개봉 완료!" : `🌙 ${round}바퀴째 / ${ROUNDS} · 남은 봉투 ${left}장`}</div>
+      <div class="round">${over ? "🏁 모든 봉투 개봉 완료!" : `🌙 ${round}바퀴째 / ${ROUNDS} · 남은 봉투 ${left}장`}${tallyReached() ? ` <button class="tally-btn" data-act="tally">⏳ 현황 보기 <kbd>3</kbd></button>` : ""}</div>
       <div class="order">${S.order.map((ti, k) => `${k ? "<span>›</span>" : ""}<span class="chip ${ti === cur ? "now" : ""}" style="${tStyle(ti)}">${TEAMS[ti].crest} ${esc(TEAMS[ti].name)}</span>`).join("")}</div>
       <div class="keys">
         ${over ? `<button data-act="toEnd" style="border-color:var(--gold);color:var(--gold);font-size:2.2vh">🏆 결과 보기</button> ` : "봉투 글자키로 선택 · "}
-        ${tallyReached() ? `<button data-act="tally">⏳ 중간 집계</button>` : ""}
         <a href="answers.html" target="_blank" rel="noopener" style="color:inherit;border:1px solid #fff5;border-radius:6px;padding:.1em .5em;text-decoration:none">📋 답안지</a> <button data-act="rules">1 규칙</button> <button data-act="items">2 아이템</button>
         <button data-act="undo">Ctrl+Z 되돌리기</button> <button data-act="sound">${soundOn ? "🔊" : "🔇"}</button>
         <button data-act="home">⌂</button>
@@ -502,8 +504,11 @@
     else if (m.stage === "quiz" || m.stage === "stealAns") {
       const q = m.quiz;
       const stealing = m.stage === "stealAns";
+      const ticketTeams = !stealing && !q.team && m.ticketUser == null ? range(N).filter((i) => i !== m.team && S.tickets && S.tickets[i] > 0) : [];
       h = `${stealing
             ? `<div class="head"><span class="who" style="${tStyle(m.stealTeam)}">${TEAMS[m.stealTeam].crest} ${esc(tName(m.stealTeam))}</span><span>⚡ 스틸 도전!</span></div>`
+            : m.ticketUser != null
+            ? `<div class="head"><span class="who" style="${tStyle(m.ticketUser)}">${TEAMS[m.ticketUser].crest} ${esc(tName(m.ticketUser))}</span><span>⏳ 시간 돌리개! 먼저 답하기</span></div>`
             : headHTML()}
         ${m.itemQuiz
           ? `<h2 class="kind">🎁 아이템 찬스 <span class="tag-en">ITEM CHANCE</span></h2>
@@ -516,12 +521,13 @@
         <div class="actions">
           ${m.timer ? `<button class="btn ink" data-act="timer">${m.timer.running ? "⏸ 일시정지" : m.timer.left < m.timer.total ? "▶ 계속" : "⏱ 타이머 시작"} <kbd>Space</kbd></button>` : ""}
           ${stealing ? `<button class="btn ink" data-act="stealChange">↺ 스틸 팀 다시 고르기</button>` : ""}
+          ${ticketTeams.map((i) => `<button class="btn steal" data-act="useTicket" data-arg="${i}">⏳ ${TEAMS[i].crest} ${esc(tName(i))} 시간 돌리개</button>`).join("")}
           <button class="btn big bad" data-act="${stealing ? "stealWrong" : "wrong"}">✘ ${stealing ? "오답" : "오답 / 시간 초과"}</button>
           <button class="btn big ok" data-act="${stealing ? "stealRight" : "right"}">✔ 정답!</button>
         </div>`;
     }
     else if (m.stage === "steal") {
-      const others = range(N).filter((i) => i !== m.team);
+      const others = range(N).filter((i) => i !== (m.ticketUser ?? m.team));
       h = `${headHTML()}
         <div class="steal-banner">⚡ 스틸 찬스!</div>
         <div class="question" style="font-size:4.2vh">${esc(m.quiz.q)}</div>
@@ -582,6 +588,8 @@
       let body = "";
       if (needTarget) {
         body = `<div class="rank-prompt">${k === "polyjuice" ? `🔄 ${esc(tName(owner))}, 점수를 바꿀 팀을 고르세요!` : `⚡ ${esc(tName(owner))}, 저주를 걸 팀을 고르세요!`}</div>${teamButtons(others, "curseTarget")}`;
+      } else if (k === "timeturner") {
+        body = `<div class="result-line good" style="font-size:3.6vh">⏳ ${esc(tName(owner))} 보관! 다른 팀 문제가 열리면 꺼내 써서 먼저 답할 수 있어요</div>`;
       } else if (k === "polyjuice") {
         // 폴리주스: 정답 점수(+10)를 먼저 반영한 뒤 두 팀 점수를 맞바꿈
         const t = m.target, lab = (i) => `<span class="lbl" style="${tStyle(i)}">${TEAMS[i].crest} ${esc(tName(i))}</span>`;
@@ -643,7 +651,7 @@
 
     /* ---------- 중간 집계 (모래시계) ---------- */
     else if (m.stage === "tally") {
-      h = `<div class="head"><span>⏳ ${tallyRound()}바퀴 종료</span></div>
+      h = `<div class="head"><span>⏳ 지금 ${Math.min(ROUNDS, Math.floor(S.turn / N) + 1)}바퀴째 · 남은 봉투 ${TOTAL - S.turn}장</span></div>
         <h2 class="kind">⏳ 중간 집계 <span class="tag-en">HOUSE HOURGLASSES</span></h2>
         <div class="sub">모래시계에 보석이 많이 쌓일수록 금고에 금화가 많아요! 정확한 금액은… 마지막 금고 오픈 때 공개 🔐</div>
         ${hourglassesHTML()}
@@ -672,7 +680,7 @@
     P.innerHTML = h;
   }
 
-  function itemQuizCfg() { return Object.assign({ items: ["butterbeer", "felix", "curse", "polyjuice", "dementor", "cloak"], timeLimit: C.quiz.timeLimit, stealTimeLimit: C.quiz.stealTimeLimit }, C.itemQuiz || {}); }
+  function itemQuizCfg() { return Object.assign({ items: ["butterbeer", "felix", "curse", "polyjuice", "timeturner", "dementor", "cloak"], timeLimit: C.quiz.timeLimit, stealTimeLimit: C.quiz.stealTimeLimit }, C.itemQuiz || {}); }
   function itemNeedsQuiz(k) { return itemQuizCfg().items.includes(k); }
   // 아이템 찬스 문제를 맞힌 팀이 받는 정답 점수 (아이템 효과보다 먼저 적용)
   function itemWinPoints(m) { return m.itemQuiz && m.winner != null ? (itemQuizCfg().points ?? C.quiz.points) : 0; }
@@ -822,10 +830,16 @@
       case "timer": toggleTimer(); break;
       case "right":
         stopTimer();
-        if (m.itemQuiz) { m.winner = m.team; afterItemWin(m); renderModal(); burstOn($("#modal-panel"), TEAMS[m.team].accent, 50); break; }
-        sfx.correct(); flash("#bff5cf");
-        m.result = { team: m.team, steal: false }; m.stage = "quizResult"; renderModal();
-        burstOn($("#modal-panel"), TEAMS[m.team].accent, 50); break;
+        { const p = m.ticketUser ?? m.team;   // 시간 돌리개를 썼으면 그 팀이 우선권
+          if (m.itemQuiz) { m.winner = p; afterItemWin(m); renderModal(); burstOn($("#modal-panel"), TEAMS[p].accent, 50); break; }
+          sfx.correct(); flash("#bff5cf");
+          m.result = { team: p, steal: false }; m.stage = "quizResult"; renderModal();
+          burstOn($("#modal-panel"), TEAMS[p].accent, 50); break; }
+      case "useTicket":
+        stopTimer();
+        m.ticketUser = +arg; m.timeout = false;
+        m.timer = makeTimer(m.quiz.time ?? (m.itemQuiz ? itemQuizCfg().timeLimit : C.quiz.timeLimit));
+        sfx.zap(); flash("#7b3fe4"); renderModal(); break;
       case "wrong":
         stopTimer(); sfx.wrong();
         m.timer = null; m.timeout = false; m.stage = "steal"; renderModal(); break;
@@ -890,7 +904,7 @@
         S.quizPtr++;
         if (m.result.team !== null) {
           S.scores[m.result.team] = clamp0(S.scores[m.result.team] + m.points);
-          env.summary = m.result.steal ? `⚡${tName(m.result.team)} 스틸 +${m.points}` : `정답 +${m.points}`;
+          env.summary = m.result.steal ? `⚡${tName(m.result.team)} 스틸 +${m.points}` : m.ticketUser != null ? `⏳${tName(m.result.team)} +${m.points}` : `정답 +${m.points}`;
         } else env.summary = "득점 없음";
       } else if (env.type === "mission") {
         S.missionPtr++;
@@ -908,11 +922,13 @@
           const pts = itemWinPoints(m);
           if (pts) S.scores[m.winner] = clamp0(S.scores[m.winner] + pts);   // 정답 점수 먼저
           if (k === "polyjuice") [S.scores[owner], S.scores[m.target]] = [S.scores[m.target], S.scores[owner]];   // 점수 맞바꾸기
+          else if (k === "timeturner") S.tickets[owner]++;                   // 보관
           else S.scores[tgt] = itemResult(k, S.scores[tgt]);                 // 그다음 아이템 효과
           const by = m.passedFrom != null ? `🔄${tName(m.passedFrom)}→${tName(owner)} ` : owner !== m.team ? `⚡${tName(owner)} ` : "";
           env.summary = k === "curse" ? `${by}${C.items[k].name} → ${tName(tgt)}` : k === "polyjuice" ? `${by}폴리주스 ⇄ ${tName(m.target)}` : `${by}${C.items[k].name}`;
         }
       }
+      if (m.ticketUser != null) S.tickets[m.ticketUser] = Math.max(0, S.tickets[m.ticketUser] - 1);
       S.picks[m.team]++;
       S.turn++;
       S.log.push({ t: "env", letter: e.letter, team: m.team, before, after: S.scores.slice() });
@@ -1177,6 +1193,7 @@
     }
     if (k === "1") { openRules(0); return; }
     if (k === "2") { openRules(2); return; }
+    if (k === "3" && !modal && view === "board" && tallyReached()) { openTally(); return; }
     if (k === "0") { toggleFullscreen(); return; }
     if (k === "9") { act("sound"); return; }
 
@@ -1199,6 +1216,7 @@
   /* ====================== 시작 ====================== */
   checkMix();
   load();
+  if (S && !S.tickets) S.tickets = range(N).map(() => 0);
   if (S && (!S.itemQuizOrder || S.itemQuizOrder.length !== (T.itemQuizzes || []).length)) { S.itemQuizOrder = shuffle(range((T.itemQuizzes || []).length)); S.itemQuizPtr = S.itemQuizPtr || 0; }
   if (S) shown = S.scores.slice();
   render();
